@@ -64,6 +64,9 @@ public class MainMenuUIScript : MonoBehaviour
     private TextMeshProUGUI _squadActionLabel;
     private GameObject _squadManagePanel;
     private TextMeshProUGUI _squadManageLabel;
+    private GameObject _pendingInviteBar;
+    private TextMeshProUGUI _pendingInviteLabel;
+    private readonly Dictionary<string, string> _onlineNames = new();
     private List<GameObject> _players;
     private DateTime _lastRefresh;
     private DateTime _lastSet;
@@ -159,6 +162,7 @@ public class MainMenuUIScript : MonoBehaviour
         objectToAttach.AddComponent<UIDragComponent>().Init(_transformToScale, true);
         _mainMenuUI.RefreshButton.onClick.AddListener(ManualRefresh);
         CreateSquadControls();
+        CreatePendingInviteBar();
         _ = RefreshSquadControls();
 
         gameObject.SetActive(false);
@@ -252,6 +256,71 @@ public class MainMenuUIScript : MonoBehaviour
         _squadManagePanel.SetActive(false);
     }
 
+
+    private void CreatePendingInviteBar()
+    {
+        _pendingInviteBar = new GameObject("PendingSquadInvite", typeof(RectTransform), typeof(Image));
+        _pendingInviteBar.transform.SetParent(_userInterface.transform, false);
+        var rect = (RectTransform)_pendingInviteBar.transform;
+        rect.anchorMin = new Vector2(0.5f, 1f);
+        rect.anchorMax = new Vector2(0.5f, 1f);
+        rect.pivot = new Vector2(0.5f, 0f);
+        rect.anchoredPosition = new Vector2(0, 5);
+        rect.sizeDelta = new Vector2(400, 64);
+        _pendingInviteBar.GetComponent<Image>().color = new Color(0.09f, 0.12f, 0.12f, 0.98f);
+        var textGo = new GameObject("InviteMessage", typeof(RectTransform), typeof(TextMeshProUGUI));
+        textGo.transform.SetParent(_pendingInviteBar.transform, false);
+        var labelRect = (RectTransform)textGo.transform;
+        labelRect.anchorMin = new Vector2(0, 0.5f);
+        labelRect.anchorMax = new Vector2(1, 1);
+        labelRect.offsetMin = new Vector2(8, 0);
+        labelRect.offsetMax = new Vector2(-8, -3);
+        _pendingInviteLabel = textGo.GetComponent<TextMeshProUGUI>();
+        _pendingInviteLabel.fontSize = 15;
+        _pendingInviteLabel.alignment = TextAlignmentOptions.Center;
+
+        var accept = MakeSquadButton("Accept", _pendingInviteBar.transform, () => _ = RespondToFirstInvite(true));
+        var decline = MakeSquadButton("Decline", _pendingInviteBar.transform, () => _ = RespondToFirstInvite(false));
+        foreach (var button in new[] { accept, decline })
+        {
+            var buttonRect = (RectTransform)button.transform;
+            buttonRect.anchorMin = new Vector2(0.5f, 0);
+            buttonRect.anchorMax = new Vector2(0.5f, 0);
+            buttonRect.pivot = new Vector2(0.5f, 0);
+            buttonRect.sizeDelta = new Vector2(105, 26);
+        }
+        ((RectTransform)accept.transform).anchoredPosition = new Vector2(-57, 4);
+        ((RectTransform)decline.transform).anchoredPosition = new Vector2(57, 4);
+        _pendingInviteBar.SetActive(false);
+    }
+
+    private async System.Threading.Tasks.Task RespondToFirstInvite(bool accept)
+    {
+        var pending = FikaSquadNotifications.PendingInvites.FirstOrDefault();
+        if (string.IsNullOrEmpty(pending.Key)) return;
+        try
+        {
+            var success = await FikaSquadNotifications.Respond(pending.Key, accept);
+            if (!success)
+                NotificationManager.DisplayMessageNotification("Squad invitation expired or could not be processed");
+            await RefreshSquadControls();
+        }
+        catch (Exception ex) { FikaGlobals.LogError("Squad invitation response failed: " + ex); }
+    }
+
+    private void UpdatePendingInviteBar()
+    {
+        if (_pendingInviteBar == null) return;
+        var pending = FikaSquadNotifications.PendingInvites.FirstOrDefault();
+        var hasInvite = !string.IsNullOrEmpty(pending.Key);
+        _pendingInviteBar.SetActive(hasInvite);
+        if (hasInvite)
+        {
+            var name = _onlineNames.TryGetValue(pending.Value, out var nickname) ? nickname : pending.Value;
+            _pendingInviteLabel.text = name + " invited you to a squad";
+        }
+    }
+
     private void UpdateSquadManageLabel()
     {
         if (_squadManageLabel == null) return;
@@ -271,6 +340,7 @@ public class MainMenuUIScript : MonoBehaviour
             if (!inSquad || !FikaSquadNotifications.IsLeader)
                 _squadManagePanel.SetActive(false);
             UpdateSquadManageLabel();
+            UpdatePendingInviteBar();
         }
         catch (Exception ex) { FikaGlobals.LogError("Squad refresh failed: " + ex); }
     }
@@ -306,6 +376,10 @@ public class MainMenuUIScript : MonoBehaviour
 
         var response = FikaRequestHandler.GetPlayerPresences();
         _mainMenuUI.UpdateLabel(response.Length);
+        _onlineNames.Clear();
+        foreach (var presence in response)
+            if (!string.IsNullOrEmpty(presence.ProfileId))
+                _onlineNames[presence.ProfileId] = presence.Nickname;
         SetupPlayers(ref response);
         _ = RefreshSquadControls();
     }
@@ -375,8 +449,11 @@ public class MainMenuUIScript : MonoBehaviour
                 inviteRect.anchorMin = new Vector2(1f, 0.5f);
                 inviteRect.anchorMax = new Vector2(1f, 0.5f);
                 inviteRect.pivot = new Vector2(1f, 0.5f);
-                inviteRect.anchoredPosition = new Vector2(-125, 0);
-                inviteRect.sizeDelta = new Vector2(64, 24);
+                inviteRect.anchoredPosition = new Vector2(-8, 0);
+                inviteRect.sizeDelta = new Vector2(78, 24);
+                invite.transform.SetAsLastSibling();
+                // Reserve the right-hand side for the invite action.
+                mainMenuUIPlayer.PlayerStatus.rectTransform.anchoredPosition += new Vector2(-85, 0);
                 invite.gameObject.SetActive(FikaSquadNotifications.IsLeader
                     && string.IsNullOrEmpty(presence.SquadId));
             }
