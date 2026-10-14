@@ -57,6 +57,14 @@ internal static class FikaSquadNotifications
         StateChanged?.Invoke();
     }
 
+    internal static async Task<bool> Kick(string memberId)
+    {
+        var response = await FikaRequestHandler.KickSquadMember(memberId);
+        if (response == null || !response.Success) return false;
+        await Refresh();
+        return true;
+    }
+
     internal static async Task<bool> Leave()
     {
         var response = await FikaRequestHandler.LeaveSquad();
