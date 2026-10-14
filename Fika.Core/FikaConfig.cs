@@ -110,6 +110,7 @@ public sealed class FikaConfig(ConfigFile config)
     public ConfigEntry<bool> AllowVOIP { get; set; }
 
     // Gameplay
+    public ConfigEntry<bool> SkipRaidSettingsScreen { get; set; }
     public ConfigEntry<bool> DisableBotMetabolism { get; set; }
     public ConfigEntry<bool> StrictInventorySync { get; set; }
     #endregion
@@ -830,6 +831,9 @@ public sealed class FikaConfig(ConfigFile config)
             "Allow VOIP", ref failed, headers);
 
         // Gameplay
+
+        SkipRaidSettingsScreen = _config.Bind("Gameplay", "Skip Raid Settings Screen", true,
+            "Skip the pre-raid settings screen by default. A server that disallows editing also skips it.");
 
         DisableBotMetabolism = SetupSetting("Gameplay", "Disable Bot Metabolism",
             false, new ConfigDescription(LocaleUtils.BEPINEX_DISABLE_BOT_METABOLISM_D.Localized(),
