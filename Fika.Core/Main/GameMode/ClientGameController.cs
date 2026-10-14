@@ -176,6 +176,8 @@ public class ClientGameController(IFikaGame game, EUpdateQueue updateQueue, Game
 
     public override async Task ReceiveSpawnPoint(Profile profile)
     {
+        // Resolve accepted squad membership before any spawn-selection branch.
+        await Fika.Core.Networking.Websocket.FikaSquadNotifications.Refresh();
         var spawnTogether = CheckSpawnTogether();
         if (!spawnTogether)
         {
