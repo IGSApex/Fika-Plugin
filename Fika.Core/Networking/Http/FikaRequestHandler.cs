@@ -122,6 +122,38 @@ public static class FikaRequestHandler
             .GetResult();
     }
 
+    public static Task<SquadApiResponse> InviteToSquad(string recipientId) =>
+        PostJsonAsync<object, SquadApiResponse>("/fika/squad/invite", new { recipientId });
+
+    public static Task<SquadApiResponse> RespondToSquadInvite(string inviteId, bool accept) =>
+        PostJsonAsync<object, SquadApiResponse>("/fika/squad/respond", new { inviteId, accept });
+
+    public static Task<SquadApiResponse> LeaveSquad() =>
+        PostJsonAsync<object, SquadApiResponse>("/fika/squad/leave", new { });
+
+    public static Task<SquadApiResponse> GetSquadStatus() =>
+        PostJsonAsync<object, SquadApiResponse>("/fika/squad/status", new { });
+
+    public sealed class SquadApiResponse
+    {
+        [JsonProperty("success")]
+        public bool Success { get; set; }
+        [JsonProperty("squadId")]
+        public string SquadId { get; set; }
+        [JsonProperty("members")]
+        public string[] Members { get; set; }
+        [JsonProperty("pendingInvites")]
+        public SquadInvite[] PendingInvites { get; set; }
+    }
+
+    public sealed class SquadInvite
+    {
+        [JsonProperty("id")]
+        public string Id { get; set; }
+        [JsonProperty("sender")]
+        public string Sender { get; set; }
+    }
+
     public static BotDifficulties GetBotDifficulties()
     {
         return GetJson<BotDifficulties>("/singleplayer/settings/bot/difficulties/");
