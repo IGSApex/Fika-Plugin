@@ -14,7 +14,7 @@ internal static class FikaSquadNotifications
 {
     internal static readonly Dictionary<string, string> PendingInvites = new();
     internal static string SquadId { get; private set; } = string.Empty;
-    internal static bool IsLeader { get; private set; };
+    internal static bool IsLeader { get; private set; }
 
     internal static async Task<bool> Create()
     {
