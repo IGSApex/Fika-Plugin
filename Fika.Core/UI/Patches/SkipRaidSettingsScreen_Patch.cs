@@ -27,6 +27,8 @@ public sealed class SkipRaidSettingsScreen_Patch : ModulePatch
     [PatchPrefix]
     private static bool Prefix(MainMenuShowOperation __instance)
     {
+        if (Fika.Core.Main.Utils.FikaBackendUtils.IsHeadless) return true;
+
         var config = FikaPlugin.Instance?.Settings;
         if (config?.SkipRaidSettingsScreen?.Value != true && config?.CanEditRaidSettings != false)
         {
@@ -38,6 +40,13 @@ public sealed class SkipRaidSettingsScreen_Patch : ModulePatch
         var raidMode = __instance.raidSettings_0.RaidMode;
         __instance.CG_method_80();
         __instance.raidSettings_0.RaidMode = raidMode;
+        // Reproduce the Fika Close patch's settings transfer.
+        var settings = __instance.raidSettings_0;
+        var offline = __instance.raidSettings_1;
+        settings.TimeAndWeatherSettings = offline.TimeAndWeatherSettings;
+        settings.WavesSettings = offline.WavesSettings;
+        settings.MetabolismDisabled = offline.MetabolismDisabled;
+        settings.PlayersSpawnPlace = offline.PlayersSpawnPlace;
         return false;
     }
 }
