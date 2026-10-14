@@ -226,7 +226,14 @@ public class ClientGameController(IFikaGame game, EUpdateQueue updateQueue, Game
         var spawnSafeDistance = (Location.SpawnSafeDistanceMeters > 0) ? Location.SpawnSafeDistanceMeters : 100;
         SpawnSystemSettings settings = new(Location.MinDistToFreePoint, Location.MaxDistToFreePoint, Location.MaxBotPerZone, spawnSafeDistance, Location.NoGroupSpawn, Location.OneTimeSpawn);
         SpawnSystem = SpawnSystemFactory.CreateSpawnSystem(settings, FikaGlobals.GetApplicationTime, Singleton<GameWorld>.Instance, null, _spawnPoints);
-        _spawnPoint = SpawnSystem.SelectSpawnPoint(ESpawnCategory.Player, profile.Info.Side, null, null, null, null, profile.Id);
+        // For random-spawn raids, accepted squad members must choose the same
+        // spawn seed. Unaffiliated players continue using their unique profile ID.
+        // Squad membership is refreshed from the authenticated server before
+        // spawn selection; do not use the raid connection ID as a squad ID.
+        var spawnSeed = string.IsNullOrEmpty(Fika.Core.Networking.Websocket.FikaSquadNotifications.SquadId)
+            ? profile.Id
+            : Fika.Core.Networking.Websocket.FikaSquadNotifications.SquadId;
+        _spawnPoint = SpawnSystem.SelectSpawnPoint(ESpawnCategory.Player, profile.Info.Side, null, null, null, null, spawnSeed);
         InfiltrationPoint = string.IsNullOrEmpty(_spawnPoint.Infiltration) ? "MissingInfiltration" : _spawnPoint.Infiltration;
         ClientSpawnPosition = _spawnPoint.Position;
         ClientSpawnRotation = _spawnPoint.Rotation;
