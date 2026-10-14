@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using Newtonsoft.Json.Linq;
-using Fika.Core.Main.Utils;
 using Fika.Core.Networking.Http;
 using System.Threading.Tasks;
 
@@ -41,7 +40,6 @@ internal static class FikaSquadNotifications
             return;
         SquadId = response.SquadId ?? string.Empty;
         Members = response.Members ?? Array.Empty<string>();
-        FikaBackendUtils.GroupId = SquadId;
         PendingInvites.Clear();
         if (response.PendingInvites != null)
             foreach (var invite in response.PendingInvites)
@@ -75,7 +73,6 @@ internal static class FikaSquadNotifications
             SquadId = payload.Value<string>("squadId") ?? string.Empty;
             Members = payload["members"]?.ToObject<string[]>() ?? Array.Empty<string>();
             // Raid grouping is resolved separately from the matchmaking lobby.
-            FikaBackendUtils.GroupId = SquadId;
         }
         StateChanged?.Invoke();
     }
