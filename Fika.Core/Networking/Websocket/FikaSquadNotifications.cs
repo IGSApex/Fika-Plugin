@@ -14,6 +14,15 @@ internal static class FikaSquadNotifications
 {
     internal static readonly Dictionary<string, string> PendingInvites = new();
     internal static string SquadId { get; private set; } = string.Empty;
+    internal static bool IsLeader { get; private set; };
+
+    internal static async Task<bool> Create()
+    {
+        var result = await FikaRequestHandler.CreateSquad();
+        if (result == null || !result.Success) return false;
+        await Refresh();
+        return true;
+    }
     internal static string[] Members { get; private set; } = Array.Empty<string>();
 
     internal static event Action StateChanged;
@@ -39,6 +48,7 @@ internal static class FikaSquadNotifications
         if (response == null)
             return;
         SquadId = response.SquadId ?? string.Empty;
+        IsLeader = response.IsLeader;
         Members = response.Members ?? Array.Empty<string>();
         PendingInvites.Clear();
         if (response.PendingInvites != null)
