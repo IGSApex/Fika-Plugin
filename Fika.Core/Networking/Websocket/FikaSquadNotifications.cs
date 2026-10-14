@@ -60,15 +60,17 @@ internal static class FikaSquadNotifications
 
     internal static void Receive(JObject payload)
     {
-        var type = payload.Value<int>("type");
-        if (type == (int)EFikaNotification.SquadInvite)
+        var rawType = payload.Value<string>("type");
+        if (!Enum.TryParse(rawType, true, out EFikaNotification type))
+            return;
+        if (type == EFikaNotification.SquadInvite)
         {
             var inviteId = payload.Value<string>("inviteId");
             var sender = payload.Value<string>("senderId");
             if (!string.IsNullOrEmpty(inviteId) && !string.IsNullOrEmpty(sender))
                 PendingInvites[inviteId] = sender;
         }
-        else if (type == (int)EFikaNotification.SquadUpdated)
+        else if (type == EFikaNotification.SquadUpdated)
         {
             SquadId = payload.Value<string>("squadId") ?? string.Empty;
             Members = payload["members"]?.ToObject<string[]>() ?? Array.Empty<string>();
