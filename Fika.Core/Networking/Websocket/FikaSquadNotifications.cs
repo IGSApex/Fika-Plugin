@@ -2,6 +2,8 @@ using System;
 using System.Collections.Generic;
 using Newtonsoft.Json.Linq;
 using Fika.Core.Main.Utils;
+using Fika.Core.Networking.Http;
+using System.Threading.Tasks;
 
 namespace Fika.Core.Networking.Websocket;
 
@@ -16,6 +18,45 @@ internal static class FikaSquadNotifications
     internal static string[] Members { get; private set; } = Array.Empty<string>();
 
     internal static event Action StateChanged;
+
+    internal static async Task<bool> Invite(string recipientId)
+    {
+        var response = await FikaRequestHandler.InviteToSquad(recipientId);
+        return response != null && response.Success;
+    }
+
+    internal static async Task<bool> Respond(string inviteId, bool accept)
+    {
+        var response = await FikaRequestHandler.RespondToSquadInvite(inviteId, accept);
+        if (response == null || !response.Success)
+            return false;
+        PendingInvites.Remove(inviteId);
+        return true;
+    }
+
+    internal static async Task Refresh()
+    {
+        var response = await FikaRequestHandler.GetSquadStatus();
+        if (response == null)
+            return;
+        SquadId = response.SquadId ?? string.Empty;
+        Members = response.Members ?? Array.Empty<string>();
+        FikaBackendUtils.GroupId = SquadId;
+        PendingInvites.Clear();
+        if (response.PendingInvites != null)
+            foreach (var invite in response.PendingInvites)
+                PendingInvites[invite.Id] = invite.Sender;
+        StateChanged?.Invoke();
+    }
+
+    internal static async Task<bool> Leave()
+    {
+        var response = await FikaRequestHandler.LeaveSquad();
+        if (response == null || !response.Success)
+            return false;
+        await Refresh();
+        return true;
+    }
 
     internal static void Receive(JObject payload)
     {
