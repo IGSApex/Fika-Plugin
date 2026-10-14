@@ -64,6 +64,7 @@ public class MainMenuUIScript : MonoBehaviour
     private TextMeshProUGUI _squadActionLabel;
     private GameObject _squadManagePanel;
     private TextMeshProUGUI _squadManageLabel;
+    private RectTransform _squadRosterRoot;
     private GameObject _pendingInviteBar;
     private TextMeshProUGUI _pendingInviteLabel;
     private readonly Dictionary<string, string> _onlineNames = new();
@@ -241,18 +242,27 @@ public class MainMenuUIScript : MonoBehaviour
         panelRect.anchorMax = new Vector2(0.5f, 0f);
         panelRect.pivot = new Vector2(0.5f, 1f);
         panelRect.anchoredPosition = new Vector2(0, -40);
-        panelRect.sizeDelta = new Vector2(270, 95);
+        panelRect.sizeDelta = new Vector2(360, 245);
         _squadManagePanel.GetComponent<Image>().color = new Color(0.08f, 0.09f, 0.09f, 0.98f);
         var labelGo = new GameObject("SquadDetails", typeof(RectTransform), typeof(TextMeshProUGUI));
         labelGo.transform.SetParent(_squadManagePanel.transform, false);
         var labelRect = (RectTransform)labelGo.transform;
-        labelRect.anchorMin = Vector2.zero;
-        labelRect.anchorMax = Vector2.one;
-        labelRect.offsetMin = new Vector2(8, 8);
-        labelRect.offsetMax = new Vector2(-8, -8);
+        labelRect.anchorMin = new Vector2(0, 1);
+        labelRect.anchorMax = new Vector2(1, 1);
+        labelRect.pivot = new Vector2(0.5f, 1);
+        labelRect.anchoredPosition = new Vector2(0, -8);
+        labelRect.sizeDelta = new Vector2(-16, 55);
         _squadManageLabel = labelGo.GetComponent<TextMeshProUGUI>();
         _squadManageLabel.fontSize = 13;
         _squadManageLabel.alignment = TextAlignmentOptions.TopLeft;
+        var roster = new GameObject("MemberRoster", typeof(RectTransform));
+        roster.transform.SetParent(_squadManagePanel.transform, false);
+        _squadRosterRoot = (RectTransform)roster.transform;
+        _squadRosterRoot.anchorMin = new Vector2(0, 1);
+        _squadRosterRoot.anchorMax = new Vector2(1, 1);
+        _squadRosterRoot.pivot = new Vector2(0.5f, 1);
+        _squadRosterRoot.anchoredPosition = new Vector2(0, -70);
+        _squadRosterRoot.sizeDelta = new Vector2(-16, 170);
         _squadManagePanel.SetActive(false);
     }
 
@@ -323,9 +333,58 @@ public class MainMenuUIScript : MonoBehaviour
 
     private void UpdateSquadManageLabel()
     {
-        if (_squadManageLabel == null) return;
+        if (_squadManageLabel == null || _squadRosterRoot == null) return;
+        var members = FikaSquadNotifications.Members;
         _squadManageLabel.text = "Squad: " + FikaSquadNotifications.SquadId +
-            "\\nMembers: " + string.Join(", ", FikaSquadNotifications.Members);
+            "\nMembers: " + members.Length + " / 5";
+        foreach (Transform child in _squadRosterRoot)
+            Destroy(child.gameObject);
+        for (var i = 0; i < members.Length && i < 5; i++)
+        {
+            var memberId = members[i];
+            var row = new GameObject("Member_" + i, typeof(RectTransform), typeof(Image));
+            row.transform.SetParent(_squadRosterRoot, false);
+            var rowRect = (RectTransform)row.transform;
+            rowRect.anchorMin = new Vector2(0, 1);
+            rowRect.anchorMax = new Vector2(1, 1);
+            rowRect.pivot = new Vector2(0.5f, 1);
+            rowRect.anchoredPosition = new Vector2(0, -i * 33);
+            rowRect.sizeDelta = new Vector2(0, 30);
+            row.GetComponent<Image>().color = new Color(0.13f, 0.15f, 0.15f, 0.95f);
+            var labelGo = new GameObject("MemberName", typeof(RectTransform), typeof(TextMeshProUGUI));
+            labelGo.transform.SetParent(row.transform, false);
+            var labelRect = (RectTransform)labelGo.transform;
+            labelRect.anchorMin = Vector2.zero;
+            labelRect.anchorMax = Vector2.one;
+            labelRect.offsetMin = new Vector2(8, 0);
+            labelRect.offsetMax = new Vector2(-82, 0);
+            var label = labelGo.GetComponent<TextMeshProUGUI>();
+            label.fontSize = 14;
+            label.alignment = TextAlignmentOptions.MidlineLeft;
+            label.overflowMode = TextOverflowModes.Ellipsis;
+            var isSelf = memberId == FikaBackendUtils.Profile?.Id;
+            label.text = (_onlineNames.TryGetValue(memberId, out var nickname) ? nickname : memberId)
+                + (isSelf ? " (Leader)" : "");
+            if (!isSelf && FikaSquadNotifications.IsLeader)
+            {
+                var kick = MakeSquadButton("Kick", row.transform, async () =>
+                {
+                    try
+                    {
+                        if (!await FikaSquadNotifications.Kick(memberId))
+                            NotificationManager.DisplayMessageNotification("Unable to kick squad member");
+                        UpdateSquadManageLabel();
+                    }
+                    catch (Exception ex) { FikaGlobals.LogError("Squad kick failed: " + ex); }
+                });
+                var kickRect = (RectTransform)kick.transform;
+                kickRect.anchorMin = new Vector2(1, 0.5f);
+                kickRect.anchorMax = new Vector2(1, 0.5f);
+                kickRect.pivot = new Vector2(1, 0.5f);
+                kickRect.anchoredPosition = new Vector2(-5, 0);
+                kickRect.sizeDelta = new Vector2(68, 25);
+            }
+        }
     }
 
     private async System.Threading.Tasks.Task RefreshSquadControls()
