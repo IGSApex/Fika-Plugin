@@ -13,6 +13,10 @@ using Fika.Core.Networking;
 using Fika.Core.Networking.Http;
 using Fika.Core.Networking.Models;
 using Fika.Core.Networking.Models.Presence;
+using Fika.Core.Networking.Websocket;
+using TMPro;
+using UnityEngine;
+using UnityEngine.UI;
 using HarmonyLib;
 using JsonType;
 using static Fika.Core.UI.FikaUIGlobals;
@@ -55,6 +59,11 @@ public class MainMenuUIScript : MonoBehaviour
     private MainMenuUI _mainMenuUI;
     private GameObject _playerTemplate;
     private GameObject _userInterface;
+    private Button _squadActionButton;
+    private Button _squadManageButton;
+    private TextMeshProUGUI _squadActionLabel;
+    private GameObject _squadManagePanel;
+    private TextMeshProUGUI _squadManageLabel;
     private List<GameObject> _players;
     private DateTime _lastRefresh;
     private DateTime _lastSet;
@@ -149,10 +158,121 @@ public class MainMenuUIScript : MonoBehaviour
         _transformToScale.localScale = new(scale, scale, scale);
         objectToAttach.AddComponent<UIDragComponent>().Init(_transformToScale, true);
         _mainMenuUI.RefreshButton.onClick.AddListener(ManualRefresh);
+        CreateSquadControls();
+        _ = RefreshSquadControls();
 
         gameObject.SetActive(false);
         this.WaitFrames(3, null);
         gameObject.SetActive(true);
+    }
+
+
+    private Button MakeSquadButton(string title, Transform parent, UnityEngine.Events.UnityAction action)
+    {
+        var go = new GameObject(title, typeof(RectTransform), typeof(Image), typeof(Button));
+        go.transform.SetParent(parent, false);
+        var rect = (RectTransform)go.transform;
+        rect.sizeDelta = new Vector2(118, 27);
+        go.GetComponent<Image>().color = new Color(0.16f, 0.19f, 0.19f, 0.98f);
+        var button = go.GetComponent<Button>();
+        button.onClick.AddListener(action);
+        var textGo = new GameObject("Label", typeof(RectTransform), typeof(TextMeshProUGUI));
+        textGo.transform.SetParent(go.transform, false);
+        var textRect = (RectTransform)textGo.transform;
+        textRect.anchorMin = Vector2.zero;
+        textRect.anchorMax = Vector2.one;
+        textRect.offsetMin = Vector2.zero;
+        textRect.offsetMax = Vector2.zero;
+        var label = textGo.GetComponent<TextMeshProUGUI>();
+        label.text = title;
+        label.fontSize = 15;
+        label.alignment = TextAlignmentOptions.Center;
+        label.color = Color.white;
+        return button;
+    }
+
+    private void CreateSquadControls()
+    {
+        var root = new GameObject("FikaSquadControls", typeof(RectTransform), typeof(HorizontalLayoutGroup));
+        root.transform.SetParent(_userInterface.transform, false);
+        var rect = (RectTransform)root.transform;
+        rect.anchorMin = new Vector2(0.5f, 1f);
+        rect.anchorMax = new Vector2(0.5f, 1f);
+        rect.pivot = new Vector2(0.5f, 1f);
+        rect.anchoredPosition = new Vector2(0, -48);
+        rect.sizeDelta = new Vector2(246, 30);
+        var layout = root.GetComponent<HorizontalLayoutGroup>();
+        layout.spacing = 6;
+        layout.childControlWidth = false;
+        layout.childControlHeight = false;
+        layout.childForceExpandWidth = false;
+        layout.childForceExpandHeight = false;
+
+        _squadActionButton = MakeSquadButton("Create Squad", root.transform, async () =>
+        {
+            _squadActionButton.interactable = false;
+            try
+            {
+                if (string.IsNullOrEmpty(FikaSquadNotifications.SquadId))
+                    await FikaSquadNotifications.Create();
+                else
+                    await FikaSquadNotifications.Leave();
+                await RefreshSquadControls();
+            }
+            catch (Exception ex) { FikaGlobals.LogError("Squad action failed: " + ex); }
+            finally { _squadActionButton.interactable = true; }
+        });
+        _squadActionLabel = _squadActionButton.GetComponentInChildren<TextMeshProUGUI>();
+        _squadManageButton = MakeSquadButton("Manage Squad", root.transform, () =>
+        {
+            if (!FikaSquadNotifications.IsLeader) return;
+            _squadManagePanel.SetActive(!_squadManagePanel.activeSelf);
+            UpdateSquadManageLabel();
+        });
+
+        _squadManagePanel = new GameObject("SquadManagePanel", typeof(RectTransform), typeof(Image));
+        _squadManagePanel.transform.SetParent(_userInterface.transform, false);
+        var panelRect = (RectTransform)_squadManagePanel.transform;
+        panelRect.anchorMin = new Vector2(0.5f, 1f);
+        panelRect.anchorMax = new Vector2(0.5f, 1f);
+        panelRect.pivot = new Vector2(0.5f, 1f);
+        panelRect.anchoredPosition = new Vector2(0, -82);
+        panelRect.sizeDelta = new Vector2(270, 95);
+        _squadManagePanel.GetComponent<Image>().color = new Color(0.08f, 0.09f, 0.09f, 0.98f);
+        var labelGo = new GameObject("SquadDetails", typeof(RectTransform), typeof(TextMeshProUGUI));
+        labelGo.transform.SetParent(_squadManagePanel.transform, false);
+        var labelRect = (RectTransform)labelGo.transform;
+        labelRect.anchorMin = Vector2.zero;
+        labelRect.anchorMax = Vector2.one;
+        labelRect.offsetMin = new Vector2(8, 8);
+        labelRect.offsetMax = new Vector2(-8, -8);
+        _squadManageLabel = labelGo.GetComponent<TextMeshProUGUI>();
+        _squadManageLabel.fontSize = 13;
+        _squadManageLabel.alignment = TextAlignmentOptions.TopLeft;
+        _squadManagePanel.SetActive(false);
+    }
+
+    private void UpdateSquadManageLabel()
+    {
+        if (_squadManageLabel == null) return;
+        _squadManageLabel.text = "Squad: " + FikaSquadNotifications.SquadId +
+            "\\nMembers: " + string.Join(", ", FikaSquadNotifications.Members);
+    }
+
+    private async System.Threading.Tasks.Task RefreshSquadControls()
+    {
+        try
+        {
+            await FikaSquadNotifications.Refresh();
+            if (_squadActionLabel == null) return;
+            var inSquad = !string.IsNullOrEmpty(FikaSquadNotifications.SquadId);
+            _squadActionLabel.text = inSquad ? "Leave Squad" : "Create Squad";
+            _squadManageButton.gameObject.SetActive(inSquad && FikaSquadNotifications.IsLeader);
+            if (!inSquad || !FikaSquadNotifications.IsLeader)
+                _squadManagePanel.SetActive(false);
+            UpdateSquadManageLabel();
+        }
+        catch (Exception ex) { FikaGlobals.LogError("Squad refresh failed: " + ex); }
     }
 
     private void ManualRefresh()
@@ -187,6 +307,7 @@ public class MainMenuUIScript : MonoBehaviour
         var response = FikaRequestHandler.GetPlayerPresences();
         _mainMenuUI.UpdateLabel(response.Length);
         SetupPlayers(ref response);
+        _ = RefreshSquadControls();
     }
 
     private string ConvertToTime(EDateTime dateTime, bool staticTime)
