@@ -8,6 +8,12 @@ namespace Fika.Core.Networking.Models.Presence;
 [DataContract]
 public struct FikaPlayerPresence
 {
+    [DataMember(Name = "profileId")]
+    public string ProfileId;
+
+    [DataMember(Name = "squadId")]
+    public string SquadId;
+
     [DataMember(Name = "nickname")]
     public string Nickname;
 
