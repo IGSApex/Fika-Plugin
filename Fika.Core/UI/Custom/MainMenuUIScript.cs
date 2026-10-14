@@ -196,10 +196,10 @@ public class MainMenuUIScript : MonoBehaviour
         var root = new GameObject("FikaSquadControls", typeof(RectTransform), typeof(HorizontalLayoutGroup));
         root.transform.SetParent(_userInterface.transform, false);
         var rect = (RectTransform)root.transform;
-        rect.anchorMin = new Vector2(0.5f, 1f);
-        rect.anchorMax = new Vector2(0.5f, 1f);
+        rect.anchorMin = new Vector2(0.5f, 0f);
+        rect.anchorMax = new Vector2(0.5f, 0f);
         rect.pivot = new Vector2(0.5f, 1f);
-        rect.anchoredPosition = new Vector2(0, -48);
+        rect.anchoredPosition = new Vector2(0, -6);
         rect.sizeDelta = new Vector2(246, 30);
         var layout = root.GetComponent<HorizontalLayoutGroup>();
         layout.spacing = 6;
@@ -233,10 +233,10 @@ public class MainMenuUIScript : MonoBehaviour
         _squadManagePanel = new GameObject("SquadManagePanel", typeof(RectTransform), typeof(Image));
         _squadManagePanel.transform.SetParent(_userInterface.transform, false);
         var panelRect = (RectTransform)_squadManagePanel.transform;
-        panelRect.anchorMin = new Vector2(0.5f, 1f);
-        panelRect.anchorMax = new Vector2(0.5f, 1f);
+        panelRect.anchorMin = new Vector2(0.5f, 0f);
+        panelRect.anchorMax = new Vector2(0.5f, 0f);
         panelRect.pivot = new Vector2(0.5f, 1f);
-        panelRect.anchoredPosition = new Vector2(0, -82);
+        panelRect.anchoredPosition = new Vector2(0, -40);
         panelRect.sizeDelta = new Vector2(270, 95);
         _squadManagePanel.GetComponent<Image>().color = new Color(0.08f, 0.09f, 0.09f, 0.98f);
         var labelGo = new GameObject("SquadDetails", typeof(RectTransform), typeof(TextMeshProUGUI));
@@ -338,6 +338,48 @@ public class MainMenuUIScript : MonoBehaviour
             var newPlayer = Instantiate(_playerTemplate, _playerTemplate.transform.parent);
             var mainMenuUIPlayer = newPlayer.GetComponent<MainMenuUIPlayer>();
             mainMenuUIPlayer.SetActivity(presence.Nickname, presence.Level, presence.Activity);
+            if (!string.IsNullOrEmpty(presence.SquadId))
+            {
+                var marker = new GameObject("SquadIcon", typeof(RectTransform), typeof(TextMeshProUGUI));
+                marker.transform.SetParent(newPlayer.transform, false);
+                var markerRect = (RectTransform)marker.transform;
+                markerRect.anchorMin = new Vector2(0f, 0.5f);
+                markerRect.anchorMax = new Vector2(0f, 0.5f);
+                markerRect.anchoredPosition = new Vector2(245, 0);
+                markerRect.sizeDelta = new Vector2(28, 24);
+                var markerLabel = marker.GetComponent<TextMeshProUGUI>();
+                markerLabel.text = "◆";
+                markerLabel.color = new Color(0.4f, 0.85f, 0.5f);
+                markerLabel.fontSize = 19;
+                markerLabel.alignment = TextAlignmentOptions.Center;
+                var markerTooltip = marker.AddComponent<HoverTooltipArea>();
+                markerTooltip.enabled = true;
+                markerTooltip.SetMessageText("Squad: " + presence.SquadId);
+            }
+
+            if (!string.IsNullOrEmpty(presence.ProfileId)
+                && presence.ProfileId != FikaBackendUtils.Profile?.Id
+                && presence.Activity == EFikaPlayerPresence.IN_MENU)
+            {
+                var invite = MakeSquadButton("Invite", newPlayer.transform, async () =>
+                {
+                    if (!FikaSquadNotifications.IsLeader) return;
+                    try
+                    {
+                        var success = await FikaSquadNotifications.Invite(presence.ProfileId);
+                        NotificationManager.DisplayMessageNotification(success ? "Squad invitation sent" : "Unable to invite player");
+                    }
+                    catch (Exception ex) { FikaGlobals.LogError("Squad invite failed: " + ex); }
+                });
+                var inviteRect = (RectTransform)invite.transform;
+                inviteRect.anchorMin = new Vector2(1f, 0.5f);
+                inviteRect.anchorMax = new Vector2(1f, 0.5f);
+                inviteRect.pivot = new Vector2(1f, 0.5f);
+                inviteRect.anchoredPosition = new Vector2(-125, 0);
+                inviteRect.sizeDelta = new Vector2(64, 24);
+                invite.gameObject.SetActive(FikaSquadNotifications.IsLeader
+                    && string.IsNullOrEmpty(presence.SquadId));
+            }
             if (presence.Activity is EFikaPlayerPresence.IN_RAID && presence.RaidInformation.HasValue)
             {
                 var information = presence.RaidInformation.Value;
