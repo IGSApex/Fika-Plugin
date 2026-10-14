@@ -50,7 +50,7 @@ public sealed class SkipScavRaidSettingsScreen_Patch : ModulePatch
         raid.PlayersSpawnPlace = offline.PlayersSpawnPlace;
 
         // The same continuation used by SPT's LoadOfflineRaidNextScreen.
-        menu.method_52();
+        AccessTools.Method(typeof(MainMenuShowOperation), nameof(MainMenuShowOperation.method_52))?.Invoke(menu, null);
         return false;
     }
 }
