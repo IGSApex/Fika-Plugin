@@ -131,6 +131,10 @@ internal class FikaNotificationManager
                 notification = e.Data.ParseJsonTo<PushNotification>([]);
                 HandleNotification(notification);
                 break;
+            case EFikaNotification.SquadInvite:
+            case EFikaNotification.SquadUpdated:
+                FikaSquadNotifications.Receive(jsonObject);
+                break;
             case EFikaNotification.KeepAlive:
                 break;
             case EFikaNotification.OpenAdminSettings:
