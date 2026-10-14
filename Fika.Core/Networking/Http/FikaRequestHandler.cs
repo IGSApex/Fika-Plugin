@@ -131,6 +131,9 @@ public static class FikaRequestHandler
     public static Task<SquadApiResponse> RespondToSquadInvite(string inviteId, bool accept) =>
         PostJsonAsync<object, SquadApiResponse>("/fika/squad/respond", new { inviteId, accept });
 
+    public static Task<SquadApiResponse> KickSquadMember(string recipientId) =>
+        PostJsonAsync<object, SquadApiResponse>("/fika/squad/kick", new { recipientId });
+
     public static Task<SquadApiResponse> LeaveSquad() =>
         PostJsonAsync<object, SquadApiResponse>("/fika/squad/leave", new { });
 
