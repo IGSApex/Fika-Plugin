@@ -123,6 +123,7 @@ public sealed class FikaPlugin : BaseUnityPlugin
         GetNatPunchServerConfig();
         EnableModulePatches();
         _patchManager.EnablePatch(new SkipRaidSettingsScreen_Patch());
+        _patchManager.EnablePatch(new SkipScavRaidSettingsScreen_Patch());
         DisableSPTPatches();
 
         GetClientConfig();
