@@ -122,6 +122,9 @@ public static class FikaRequestHandler
             .GetResult();
     }
 
+    public static Task<SquadApiResponse> CreateSquad() =>
+        PostJsonAsync<object, SquadApiResponse>("/fika/squad/create", new { });
+
     public static Task<SquadApiResponse> InviteToSquad(string recipientId) =>
         PostJsonAsync<object, SquadApiResponse>("/fika/squad/invite", new { recipientId });
 
@@ -140,6 +143,8 @@ public static class FikaRequestHandler
         public bool Success { get; set; }
         [JsonProperty("squadId")]
         public string SquadId { get; set; }
+        [JsonProperty("isLeader")]
+        public bool IsLeader { get; set; }
         [JsonProperty("members")]
         public string[] Members { get; set; }
         [JsonProperty("pendingInvites")]
