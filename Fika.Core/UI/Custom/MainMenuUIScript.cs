@@ -494,7 +494,7 @@ public class MainMenuUIScript : MonoBehaviour
                 && presence.ProfileId != FikaBackendUtils.Profile?.Id
                 && presence.Activity == EFikaPlayerPresence.IN_MENU)
             {
-                var invite = MakeSquadButton("Invite", newPlayer.transform, async () =>
+                var invite = MakeSquadButton("Invite", _userInterface.transform, async () =>
                 {
                     if (!FikaSquadNotifications.IsLeader) return;
                     try
@@ -505,14 +505,20 @@ public class MainMenuUIScript : MonoBehaviour
                     catch (Exception ex) { FikaGlobals.LogError("Squad invite failed: " + ex); }
                 });
                 var inviteRect = (RectTransform)invite.transform;
-                inviteRect.anchorMin = new Vector2(1f, 0.5f);
-                inviteRect.anchorMax = new Vector2(1f, 0.5f);
-                inviteRect.pivot = new Vector2(1f, 0.5f);
-                inviteRect.anchoredPosition = new Vector2(-8, 0);
-                inviteRect.sizeDelta = new Vector2(78, 24);
+                // Position the button outside the panel, aligned with this player's row.
+                // Keep it under the panel root so the row's mask does not clip it.
+                var rowRect = (RectTransform)newPlayer.transform;
+                var rowCorners = new Vector3[4];
+                rowRect.GetWorldCorners(rowCorners);
+                var panelRect = (RectTransform)_userInterface.transform;
+                var rightEdge = panelRect.InverseTransformPoint(rowCorners[2]);
+                var rowCenter = panelRect.InverseTransformPoint((rowCorners[0] + rowCorners[2]) * 0.5f);
+                inviteRect.anchorMin = new Vector2(0.5f, 0.5f);
+                inviteRect.anchorMax = new Vector2(0.5f, 0.5f);
+                inviteRect.pivot = new Vector2(0f, 0.5f);
+                inviteRect.anchoredPosition = new Vector2(rightEdge.x + 8f, rowCenter.y);
+                inviteRect.sizeDelta = new Vector2(78, 28);
                 invite.transform.SetAsLastSibling();
-                // Reserve the right-hand side for the invite action.
-                mainMenuUIPlayer.PlayerStatus.rectTransform.anchoredPosition += new Vector2(-85, 0);
                 invite.gameObject.SetActive(FikaSquadNotifications.IsLeader
                     && string.IsNullOrEmpty(presence.SquadId));
             }
