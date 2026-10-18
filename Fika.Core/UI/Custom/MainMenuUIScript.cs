@@ -206,14 +206,27 @@ public class MainMenuUIScript : MonoBehaviour
         rect.anchorMin = new Vector2(0f, 0f);
         rect.anchorMax = new Vector2(1f, 0f);
         rect.pivot = new Vector2(0.5f, 1f);
-        rect.anchoredPosition = new Vector2(0, 0);
-        rect.sizeDelta = new Vector2(0, 38);
-        root.GetComponent<Image>().color = new Color(0.14f, 0.17f, 0.18f, 0.99f);
+        rect.anchoredPosition = new Vector2(0, 2);
+        rect.sizeDelta = new Vector2(-10, 40);
+        // Reuse the existing Online Players header image instead of approximating its style.
+        var onlineHeader = _mainMenuUI.RefreshButton.transform.parent.GetComponent<Image>();
+        var footerImage = root.GetComponent<Image>();
+        if (onlineHeader != null)
+        {
+            footerImage.sprite = onlineHeader.sprite;
+            footerImage.type = onlineHeader.type;
+            footerImage.color = onlineHeader.color;
+            footerImage.material = onlineHeader.material;
+        }
+        else
+        {
+            footerImage.color = new Color(0.14f, 0.17f, 0.18f, 0.99f);
+        }
         var outline = root.GetComponent<Outline>();
         outline.effectColor = new Color(0.38f, 0.43f, 0.44f, 1f);
         outline.effectDistance = new Vector2(1f, -1f);
         var layout = root.GetComponent<HorizontalLayoutGroup>();
-        layout.padding = new RectOffset(8, 8, 5, 5);
+        layout.padding = new RectOffset(5, 5, 4, 4);
         layout.spacing = 8;
         layout.childAlignment = TextAnchor.MiddleCenter;
         layout.childControlWidth = true;
@@ -250,7 +263,7 @@ public class MainMenuUIScript : MonoBehaviour
         panelRect.anchorMax = new Vector2(1f, 0f);
         panelRect.pivot = new Vector2(0.5f, 1f);
         panelRect.anchoredPosition = new Vector2(0, -38);
-        panelRect.sizeDelta = new Vector2(0, 245);
+        panelRect.sizeDelta = new Vector2(-10, 245);
         // Same dark panel surface and subtle border as the online-player list.
         _squadManagePanel.GetComponent<Image>().color = new Color(0.065f, 0.075f, 0.078f, 0.99f);
         var manageOutline = _squadManagePanel.AddComponent<Outline>();
