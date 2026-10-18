@@ -206,7 +206,7 @@ public class MainMenuUIScript : MonoBehaviour
         rect.anchorMin = new Vector2(0f, 0f);
         rect.anchorMax = new Vector2(1f, 0f);
         rect.pivot = new Vector2(0.5f, 1f);
-        rect.anchoredPosition = new Vector2(0f, 4f);
+        rect.anchoredPosition = new Vector2(0f, -3f);
         rect.sizeDelta = new Vector2(-4f, 44f);
         // Match the Online Players panel: a dark surface with one subtle 1px
         // outline. Do not stack multiple opaque Images: their edges compound
@@ -264,7 +264,7 @@ public class MainMenuUIScript : MonoBehaviour
         panelRect.anchorMin = new Vector2(0f, 0f);
         panelRect.anchorMax = new Vector2(1f, 0f);
         panelRect.pivot = new Vector2(0.5f, 1f);
-        panelRect.anchoredPosition = new Vector2(0, -43);
+        panelRect.anchoredPosition = new Vector2(0, -50);
         panelRect.sizeDelta = new Vector2(-4, 245);
         // Same dark panel surface and subtle border as the online-player list.
         _squadManagePanel.GetComponent<Image>().color = new Color32(0x12, 0x13, 0x14, 0xFF);
