@@ -217,8 +217,8 @@ public class MainMenuUIScript : MonoBehaviour
         var frameRect = (RectTransform)frame.transform;
         frameRect.anchorMin = Vector2.zero;
         frameRect.anchorMax = Vector2.one;
-        frameRect.offsetMin = new Vector2(2f, 2f);
-        frameRect.offsetMax = new Vector2(-2f, -2f);
+        frameRect.offsetMin = new Vector2(1f, 1f);
+        frameRect.offsetMax = new Vector2(-1f, -1f);
         frame.GetComponent<Image>().color = new Color32(0x58, 0x5E, 0x61, 0xFF);
 
         var background = new GameObject("SquadFooterBackground", typeof(RectTransform), typeof(Image));
@@ -226,8 +226,8 @@ public class MainMenuUIScript : MonoBehaviour
         var backgroundRect = (RectTransform)background.transform;
         backgroundRect.anchorMin = Vector2.zero;
         backgroundRect.anchorMax = Vector2.one;
-        backgroundRect.offsetMin = new Vector2(1f, 1f);
-        backgroundRect.offsetMax = new Vector2(-1f, -1f);
+        backgroundRect.offsetMin = new Vector2(1.2f, 1.2f);
+        backgroundRect.offsetMax = new Vector2(-1.2f, -1.2f);
         background.GetComponent<Image>().color = new Color32(0x12, 0x13, 0x14, 0xFF);
         var layout = background.AddComponent<HorizontalLayoutGroup>();
         layout.padding = new RectOffset(7, 7, 5, 5);
