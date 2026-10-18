@@ -179,7 +179,7 @@ public class MainMenuUIScript : MonoBehaviour
         go.transform.SetParent(parent, false);
         var rect = (RectTransform)go.transform;
         rect.sizeDelta = new Vector2(118, 27);
-        go.GetComponent<Image>().color = new Color(0.16f, 0.19f, 0.19f, 0.98f);
+        go.GetComponent<Image>().color = new Color32(0x27, 0x2B, 0x2D, 0xFF);
         var button = go.GetComponent<Button>();
         button.onClick.AddListener(action);
         var textGo = new GameObject("Label", typeof(RectTransform), typeof(TextMeshProUGUI));
@@ -199,31 +199,22 @@ public class MainMenuUIScript : MonoBehaviour
 
     private void CreateSquadControls()
     {
-        // Clone the actual header prefab object so its sprite, borders and material match exactly.
-        // The original header is the parent of the refresh control in Fika's bundled UI.
-        var originalHeader = _mainMenuUI.RefreshButton.transform.parent.gameObject;
-        var root = Instantiate(originalHeader, _userInterface.transform, false);
-        root.name = "FikaSquadControls";
-        root.SetActive(true);
-        // Remove the cloned title/refresh objects and any inherited layout children.
-        for (var i = root.transform.childCount - 1; i >= 0; i--)
-            Destroy(root.transform.GetChild(i).gameObject);
-        // The cloned header may have layout components that conflict with our button layout.
-        foreach (var oldLayout in root.GetComponents<LayoutGroup>())
-            Destroy(oldLayout);
-        foreach (var oldButton in root.GetComponents<Button>())
-            Destroy(oldButton);
+        // Create a full-width footer using the same palette as the Online Players panel.
+        var root = new GameObject("FikaSquadControls", typeof(RectTransform), typeof(Image), typeof(Outline));
+        root.transform.SetParent(_userInterface.transform, false);
         var rect = (RectTransform)root.transform;
-        // Anchor directly to the draggable Online Players panel edges.
-        // Do not subtract the parent xMin from a parent-local coordinate.
-        var sourceHeaderRect = (RectTransform)originalHeader.transform;
         rect.anchorMin = new Vector2(0f, 0f);
         rect.anchorMax = new Vector2(1f, 0f);
         rect.pivot = new Vector2(0.5f, 1f);
         rect.anchoredPosition = Vector2.zero;
-        rect.sizeDelta = new Vector2(0f, sourceHeaderRect.rect.height);
+        rect.sizeDelta = new Vector2(0f, 44f);
+        root.GetComponent<Image>().color = new Color32(0x12, 0x13, 0x14, 0xFF);
+        var border = root.GetComponent<Outline>();
+        border.effectColor = new Color32(0x58, 0x5E, 0x61, 0xFF);
+        border.effectDistance = new Vector2(1f, -1f);
+        border.useGraphicAlpha = false;
         var layout = root.AddComponent<HorizontalLayoutGroup>();
-        layout.padding = new RectOffset(7, 7, 4, 4);
+        layout.padding = new RectOffset(7, 7, 6, 6);
         layout.spacing = 8;
         layout.childAlignment = TextAnchor.MiddleCenter;
         layout.childControlWidth = true;
@@ -259,7 +250,7 @@ public class MainMenuUIScript : MonoBehaviour
         panelRect.anchorMin = new Vector2(0f, 0f);
         panelRect.anchorMax = new Vector2(1f, 0f);
         panelRect.pivot = new Vector2(0.5f, 1f);
-        panelRect.anchoredPosition = new Vector2(0, -38);
+        panelRect.anchoredPosition = new Vector2(0, -48);
         panelRect.sizeDelta = new Vector2(-10, 245);
         // Same dark panel surface and subtle border as the online-player list.
         _squadManagePanel.GetComponent<Image>().color = new Color(0.065f, 0.075f, 0.078f, 0.99f);
