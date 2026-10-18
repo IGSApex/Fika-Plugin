@@ -214,18 +214,14 @@ public class MainMenuUIScript : MonoBehaviour
         foreach (var oldButton in root.GetComponents<Button>())
             Destroy(oldButton);
         var rect = (RectTransform)root.transform;
-        // Match the original header's horizontal boundaries in the player panel coordinate space.
+        // Anchor directly to the draggable Online Players panel edges.
+        // Do not subtract the parent xMin from a parent-local coordinate.
         var sourceHeaderRect = (RectTransform)originalHeader.transform;
-        var corners = new Vector3[4];
-        sourceHeaderRect.GetWorldCorners(corners);
-        var left = ((RectTransform)_userInterface.transform).InverseTransformPoint(corners[0]).x;
-        var right = ((RectTransform)_userInterface.transform).InverseTransformPoint(corners[2]).x;
-        var parentRect = (RectTransform)_userInterface.transform;
         rect.anchorMin = new Vector2(0f, 0f);
-        rect.anchorMax = new Vector2(0f, 0f);
-        rect.pivot = new Vector2(0f, 1f);
-        rect.anchoredPosition = new Vector2(left - parentRect.rect.xMin, 0f);
-        rect.sizeDelta = new Vector2(right - left, sourceHeaderRect.rect.height);
+        rect.anchorMax = new Vector2(1f, 0f);
+        rect.pivot = new Vector2(0.5f, 1f);
+        rect.anchoredPosition = Vector2.zero;
+        rect.sizeDelta = new Vector2(0f, sourceHeaderRect.rect.height);
         var layout = root.AddComponent<HorizontalLayoutGroup>();
         layout.padding = new RectOffset(7, 7, 4, 4);
         layout.spacing = 8;
