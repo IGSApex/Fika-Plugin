@@ -212,8 +212,18 @@ public class MainMenuUIScript : MonoBehaviour
         // just outside the frame. Match that layering instead of a solid outer rim.
         root.GetComponent<Image>().color = new Color32(0x12, 0x13, 0x14, 0xFF);
 
+        // Two-pixel outer treatment: one translucent fade pixel and one solid pixel.
+        var fade = new GameObject("SquadFooterOuterFade", typeof(RectTransform), typeof(Image));
+        fade.transform.SetParent(root.transform, false);
+        var fadeRect = (RectTransform)fade.transform;
+        fadeRect.anchorMin = Vector2.zero;
+        fadeRect.anchorMax = Vector2.one;
+        fadeRect.offsetMin = new Vector2(1f, 1f);
+        fadeRect.offsetMax = new Vector2(-1f, -1f);
+        fade.GetComponent<Image>().color = new Color32(0x58, 0x5E, 0x61, 0x70);
+
         var frame = new GameObject("SquadFooterFrame", typeof(RectTransform), typeof(Image));
-        frame.transform.SetParent(root.transform, false);
+        frame.transform.SetParent(fade.transform, false);
         var frameRect = (RectTransform)frame.transform;
         frameRect.anchorMin = Vector2.zero;
         frameRect.anchorMax = Vector2.one;
@@ -226,8 +236,8 @@ public class MainMenuUIScript : MonoBehaviour
         var backgroundRect = (RectTransform)background.transform;
         backgroundRect.anchorMin = Vector2.zero;
         backgroundRect.anchorMax = Vector2.one;
-        backgroundRect.offsetMin = new Vector2(1.2f, 1.2f);
-        backgroundRect.offsetMax = new Vector2(-1.2f, -1.2f);
+        backgroundRect.offsetMin = new Vector2(1f, 1f);
+        backgroundRect.offsetMax = new Vector2(-1f, -1f);
         background.GetComponent<Image>().color = new Color32(0x12, 0x13, 0x14, 0xFF);
         var layout = background.AddComponent<HorizontalLayoutGroup>();
         layout.padding = new RectOffset(7, 7, 5, 5);
