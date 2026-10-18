@@ -1,4 +1,4 @@
-# IGS Gaming Community — Fika Client Plugin
+# Fika Client Plugin
 
 Community fork of [Project Fika's client plugin](https://github.com/project-fika/Fika-Plugin) for SPT 4.1.x, with custom multiplayer squad functionality and menu UI. The current `FikaPlugin.FikaVersion` constant is **2.4.6**.
 
