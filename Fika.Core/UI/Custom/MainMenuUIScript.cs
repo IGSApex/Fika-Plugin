@@ -420,7 +420,8 @@ public class MainMenuUIScript : MonoBehaviour
             labelRect.offsetMin = new Vector2(8, 0);
             labelRect.offsetMax = new Vector2(-82, 0);
             var label = labelGo.GetComponent<TextMeshProUGUI>();
-            label.fontSize = 14;\n            label.color = new Color32(0xEA, 0xEC, 0xDD, 0xFF);
+            label.fontSize = 14;
+            label.color = new Color32(0xEA, 0xEC, 0xDD, 0xFF);
             label.alignment = TextAlignmentOptions.MidlineLeft;
             label.overflowMode = TextOverflowModes.Ellipsis;
             var isSelf = memberId == FikaBackendUtils.Profile?.Id;
