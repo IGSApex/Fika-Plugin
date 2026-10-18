@@ -199,34 +199,35 @@ public class MainMenuUIScript : MonoBehaviour
 
     private void CreateSquadControls()
     {
-        // Match the width and framed appearance of the Online Players header.
-        var root = new GameObject("FikaSquadControls", typeof(RectTransform), typeof(Image), typeof(HorizontalLayoutGroup), typeof(Outline));
-        root.transform.SetParent(_userInterface.transform, false);
+        // Clone the actual header prefab object so its sprite, borders and material match exactly.
+        // The original header is the parent of the refresh control in Fika's bundled UI.
+        var originalHeader = _mainMenuUI.RefreshButton.transform.parent.gameObject;
+        var root = Instantiate(originalHeader, _userInterface.transform, false);
+        root.name = "FikaSquadControls";
+        root.SetActive(true);
+        // Remove the cloned title/refresh objects and any inherited layout children.
+        for (var i = root.transform.childCount - 1; i >= 0; i--)
+            Destroy(root.transform.GetChild(i).gameObject);
+        // The cloned header may have layout components that conflict with our button layout.
+        foreach (var oldLayout in root.GetComponents<LayoutGroup>())
+            Destroy(oldLayout);
+        foreach (var oldButton in root.GetComponents<Button>())
+            Destroy(oldButton);
         var rect = (RectTransform)root.transform;
+        // Match the original header's horizontal boundaries in the player panel coordinate space.
+        var headerRect = (RectTransform)originalHeader.transform;
+        var corners = new Vector3[4];
+        headerRect.GetWorldCorners(corners);
+        var left = ((RectTransform)_userInterface.transform).InverseTransformPoint(corners[0]).x;
+        var right = ((RectTransform)_userInterface.transform).InverseTransformPoint(corners[2]).x;
+        var parentRect = (RectTransform)_userInterface.transform;
         rect.anchorMin = new Vector2(0f, 0f);
-        rect.anchorMax = new Vector2(1f, 0f);
-        rect.pivot = new Vector2(0.5f, 1f);
-        rect.anchoredPosition = new Vector2(0, 2);
-        rect.sizeDelta = new Vector2(-10, 40);
-        // Reuse the existing Online Players header image instead of approximating its style.
-        var onlineHeader = _mainMenuUI.RefreshButton.transform.parent.GetComponent<Image>();
-        var footerImage = root.GetComponent<Image>();
-        if (onlineHeader != null)
-        {
-            footerImage.sprite = onlineHeader.sprite;
-            footerImage.type = onlineHeader.type;
-            footerImage.color = onlineHeader.color;
-            footerImage.material = onlineHeader.material;
-        }
-        else
-        {
-            footerImage.color = new Color(0.14f, 0.17f, 0.18f, 0.99f);
-        }
-        var outline = root.GetComponent<Outline>();
-        outline.effectColor = new Color(0.38f, 0.43f, 0.44f, 1f);
-        outline.effectDistance = new Vector2(1f, -1f);
-        var layout = root.GetComponent<HorizontalLayoutGroup>();
-        layout.padding = new RectOffset(5, 5, 4, 4);
+        rect.anchorMax = new Vector2(0f, 0f);
+        rect.pivot = new Vector2(0f, 1f);
+        rect.anchoredPosition = new Vector2(left - parentRect.rect.xMin, 0f);
+        rect.sizeDelta = new Vector2(right - left, headerRect.rect.height);
+        var layout = root.AddComponent<HorizontalLayoutGroup>();
+        layout.padding = new RectOffset(7, 7, 4, 4);
         layout.spacing = 8;
         layout.childAlignment = TextAnchor.MiddleCenter;
         layout.childControlWidth = true;
