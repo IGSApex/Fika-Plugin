@@ -64,6 +64,7 @@ public class MainMenuUIScript : MonoBehaviour
     private TextMeshProUGUI _squadActionLabel;
     private GameObject _squadManagePanel;
     private TextMeshProUGUI _squadManageLabel;
+    private TextMeshProUGUI _squadIdLabel;
     private RectTransform _squadRosterRoot;
     private GameObject _pendingInviteBar;
     private TextMeshProUGUI _pendingInviteLabel;
@@ -205,7 +206,7 @@ public class MainMenuUIScript : MonoBehaviour
         rect.anchorMin = new Vector2(0f, 0f);
         rect.anchorMax = new Vector2(1f, 0f);
         rect.pivot = new Vector2(0.5f, 1f);
-        rect.anchoredPosition = new Vector2(0, -6);
+        rect.anchoredPosition = new Vector2(0, 0);
         rect.sizeDelta = new Vector2(0, 38);
         root.GetComponent<Image>().color = new Color(0.14f, 0.17f, 0.18f, 0.99f);
         var outline = root.GetComponent<Outline>();
@@ -248,32 +249,65 @@ public class MainMenuUIScript : MonoBehaviour
         panelRect.anchorMin = new Vector2(0f, 0f);
         panelRect.anchorMax = new Vector2(1f, 0f);
         panelRect.pivot = new Vector2(0.5f, 1f);
-        panelRect.anchoredPosition = new Vector2(0, -50);
+        panelRect.anchoredPosition = new Vector2(0, -38);
         panelRect.sizeDelta = new Vector2(0, 245);
         // Same dark panel surface and subtle border as the online-player list.
         _squadManagePanel.GetComponent<Image>().color = new Color(0.065f, 0.075f, 0.078f, 0.99f);
         var manageOutline = _squadManagePanel.AddComponent<Outline>();
         manageOutline.effectColor = new Color(0.36f, 0.41f, 0.42f, 1f);
         manageOutline.effectDistance = new Vector2(1f, -1f);
-        var labelGo = new GameObject("SquadDetails", typeof(RectTransform), typeof(TextMeshProUGUI));
-        labelGo.transform.SetParent(_squadManagePanel.transform, false);
+        // Header bar mirrors the Online Players title bar.
+        var header = new GameObject("SquadMembersHeader", typeof(RectTransform), typeof(Image));
+        header.transform.SetParent(_squadManagePanel.transform, false);
+        var headerRect = (RectTransform)header.transform;
+        headerRect.anchorMin = new Vector2(0, 1);
+        headerRect.anchorMax = new Vector2(1, 1);
+        headerRect.pivot = new Vector2(0.5f, 1);
+        headerRect.anchoredPosition = Vector2.zero;
+        headerRect.sizeDelta = new Vector2(0, 36);
+        header.GetComponent<Image>().color = new Color(0.14f, 0.17f, 0.18f, 0.99f);
+        var labelGo = new GameObject("MembersLabel", typeof(RectTransform), typeof(TextMeshProUGUI));
+        labelGo.transform.SetParent(header.transform, false);
         var labelRect = (RectTransform)labelGo.transform;
-        labelRect.anchorMin = new Vector2(0, 1);
-        labelRect.anchorMax = new Vector2(1, 1);
-        labelRect.pivot = new Vector2(0.5f, 1);
-        labelRect.anchoredPosition = new Vector2(0, -8);
-        labelRect.sizeDelta = new Vector2(-16, 55);
+        labelRect.anchorMin = Vector2.zero;
+        labelRect.anchorMax = Vector2.one;
+        labelRect.offsetMin = new Vector2(10, 0);
+        labelRect.offsetMax = new Vector2(-10, 0);
         _squadManageLabel = labelGo.GetComponent<TextMeshProUGUI>();
-        _squadManageLabel.fontSize = 13;
-        _squadManageLabel.alignment = TextAlignmentOptions.TopLeft;
+        _squadManageLabel.fontSize = 17;
+        _squadManageLabel.alignment = TextAlignmentOptions.MidlineLeft;
+        _squadManageLabel.color = Color.white;
+
+        // Squad identifier is a small footer, similar to a version label.
+        var footer = new GameObject("SquadIdFooter", typeof(RectTransform), typeof(Image));
+        footer.transform.SetParent(_squadManagePanel.transform, false);
+        var footerRect = (RectTransform)footer.transform;
+        footerRect.anchorMin = new Vector2(0, 0);
+        footerRect.anchorMax = new Vector2(1, 0);
+        footerRect.pivot = new Vector2(0.5f, 0);
+        footerRect.anchoredPosition = Vector2.zero;
+        footerRect.sizeDelta = new Vector2(0, 25);
+        footer.GetComponent<Image>().color = new Color(0.12f, 0.14f, 0.15f, 0.99f);
+        var idGo = new GameObject("SquadIdLabel", typeof(RectTransform), typeof(TextMeshProUGUI));
+        idGo.transform.SetParent(footer.transform, false);
+        var idRect = (RectTransform)idGo.transform;
+        idRect.anchorMin = Vector2.zero;
+        idRect.anchorMax = Vector2.one;
+        idRect.offsetMin = new Vector2(9, 0);
+        idRect.offsetMax = new Vector2(-9, 0);
+        _squadIdLabel = idGo.GetComponent<TextMeshProUGUI>();
+        _squadIdLabel.fontSize = 11;
+        _squadIdLabel.alignment = TextAlignmentOptions.MidlineLeft;
+        _squadIdLabel.color = new Color(0.67f, 0.72f, 0.73f, 1f);
+        _squadIdLabel.overflowMode = TextOverflowModes.Ellipsis;
         var roster = new GameObject("MemberRoster", typeof(RectTransform));
         roster.transform.SetParent(_squadManagePanel.transform, false);
         _squadRosterRoot = (RectTransform)roster.transform;
         _squadRosterRoot.anchorMin = new Vector2(0, 1);
         _squadRosterRoot.anchorMax = new Vector2(1, 1);
         _squadRosterRoot.pivot = new Vector2(0.5f, 1);
-        _squadRosterRoot.anchoredPosition = new Vector2(0, -70);
-        _squadRosterRoot.sizeDelta = new Vector2(-16, 170);
+        _squadRosterRoot.anchoredPosition = new Vector2(0, -45);
+        _squadRosterRoot.sizeDelta = new Vector2(-16, 165);
         _squadManagePanel.SetActive(false);
     }
 
@@ -346,8 +380,9 @@ public class MainMenuUIScript : MonoBehaviour
     {
         if (_squadManageLabel == null || _squadRosterRoot == null) return;
         var members = FikaSquadNotifications.Members;
-        _squadManageLabel.text = "Squad: " + FikaSquadNotifications.SquadId +
-            "\nMembers: " + members.Length + " / 5";
+        _squadManageLabel.text = "Members: " + members.Length + " / 5";
+        if (_squadIdLabel != null)
+            _squadIdLabel.text = "Squad: " + FikaSquadNotifications.SquadId;
         foreach (Transform child in _squadRosterRoot)
             Destroy(child.gameObject);
         for (var i = 0; i < members.Length && i < 5; i++)
