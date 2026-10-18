@@ -199,32 +199,35 @@ public class MainMenuUIScript : MonoBehaviour
 
     private void CreateSquadControls()
     {
-        // Create a full-width footer using the same palette as the Online Players panel.
-        var root = new GameObject("FikaSquadControls", typeof(RectTransform), typeof(Image), typeof(Outline));
+        // Separate footer below the Online Players panel.
+        var root = new GameObject("FikaSquadControls", typeof(RectTransform), typeof(Image));
         root.transform.SetParent(_userInterface.transform, false);
         var rect = (RectTransform)root.transform;
-        // Keep the footer INSIDE the panel border, flush with its bottom edge.
-        // This prevents the detached gap and the wider-than-panel outline.
         rect.anchorMin = new Vector2(0f, 0f);
         rect.anchorMax = new Vector2(1f, 0f);
-        rect.pivot = new Vector2(0.5f, 0f);
-        rect.anchoredPosition = new Vector2(0f, 1f);
-        rect.sizeDelta = new Vector2(-2f, 44f);
-        root.GetComponent<Image>().color = new Color32(0x12, 0x13, 0x14, 0xFF);
-        var border = root.GetComponent<Outline>();
-        border.effectColor = new Color32(0x58, 0x5E, 0x61, 0xFF);
-        border.effectDistance = new Vector2(1f, -1f);
-        border.useGraphicAlpha = false;
-        var layout = root.AddComponent<HorizontalLayoutGroup>();
-        layout.padding = new RectOffset(7, 7, 6, 6);
+        rect.pivot = new Vector2(0.5f, 1f);
+        rect.anchoredPosition = new Vector2(0f, -6f);
+        rect.sizeDelta = new Vector2(-4f, 44f);
+        root.GetComponent<Image>().color = new Color32(0x58, 0x5E, 0x61, 0xFF);
+
+        // A solid two-pixel border keeps the dark fill entirely inside.
+        var background = new GameObject("SquadFooterBackground", typeof(RectTransform), typeof(Image));
+        background.transform.SetParent(root.transform, false);
+        var backgroundRect = (RectTransform)background.transform;
+        backgroundRect.anchorMin = Vector2.zero;
+        backgroundRect.anchorMax = Vector2.one;
+        backgroundRect.offsetMin = new Vector2(2f, 2f);
+        backgroundRect.offsetMax = new Vector2(-2f, -2f);
+        background.GetComponent<Image>().color = new Color32(0x12, 0x13, 0x14, 0xFF);
+        var layout = background.AddComponent<HorizontalLayoutGroup>();
+        layout.padding = new RectOffset(7, 7, 5, 5);
         layout.spacing = 8;
         layout.childAlignment = TextAnchor.MiddleCenter;
         layout.childControlWidth = true;
         layout.childControlHeight = true;
         layout.childForceExpandWidth = true;
         layout.childForceExpandHeight = true;
-
-        _squadActionButton = MakeSquadButton("Create Squad", root.transform, async () =>
+                _squadActionButton = MakeSquadButton("Create Squad", background.transform, async () =>
         {
             _squadActionButton.interactable = false;
             try
@@ -239,7 +242,7 @@ public class MainMenuUIScript : MonoBehaviour
             finally { _squadActionButton.interactable = true; }
         });
         _squadActionLabel = _squadActionButton.GetComponentInChildren<TextMeshProUGUI>();
-        _squadManageButton = MakeSquadButton("Manage Squad", root.transform, () =>
+        _squadManageButton = MakeSquadButton("Manage Squad", background.transform, () =>
         {
             if (!FikaSquadNotifications.IsLeader) return;
             _squadManagePanel.SetActive(!_squadManagePanel.activeSelf);
