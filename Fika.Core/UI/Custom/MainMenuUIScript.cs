@@ -198,20 +198,27 @@ public class MainMenuUIScript : MonoBehaviour
 
     private void CreateSquadControls()
     {
-        var root = new GameObject("FikaSquadControls", typeof(RectTransform), typeof(HorizontalLayoutGroup));
+        // Match the width and framed appearance of the Online Players header.
+        var root = new GameObject("FikaSquadControls", typeof(RectTransform), typeof(Image), typeof(HorizontalLayoutGroup), typeof(Outline));
         root.transform.SetParent(_userInterface.transform, false);
         var rect = (RectTransform)root.transform;
-        rect.anchorMin = new Vector2(0.5f, 0f);
-        rect.anchorMax = new Vector2(0.5f, 0f);
+        rect.anchorMin = new Vector2(0f, 0f);
+        rect.anchorMax = new Vector2(1f, 0f);
         rect.pivot = new Vector2(0.5f, 1f);
         rect.anchoredPosition = new Vector2(0, -6);
-        rect.sizeDelta = new Vector2(246, 30);
+        rect.sizeDelta = new Vector2(0, 38);
+        root.GetComponent<Image>().color = new Color(0.14f, 0.17f, 0.18f, 0.99f);
+        var outline = root.GetComponent<Outline>();
+        outline.effectColor = new Color(0.38f, 0.43f, 0.44f, 1f);
+        outline.effectDistance = new Vector2(1f, -1f);
         var layout = root.GetComponent<HorizontalLayoutGroup>();
-        layout.spacing = 6;
-        layout.childControlWidth = false;
-        layout.childControlHeight = false;
-        layout.childForceExpandWidth = false;
-        layout.childForceExpandHeight = false;
+        layout.padding = new RectOffset(8, 8, 5, 5);
+        layout.spacing = 8;
+        layout.childAlignment = TextAnchor.MiddleCenter;
+        layout.childControlWidth = true;
+        layout.childControlHeight = true;
+        layout.childForceExpandWidth = true;
+        layout.childForceExpandHeight = true;
 
         _squadActionButton = MakeSquadButton("Create Squad", root.transform, async () =>
         {
@@ -238,12 +245,16 @@ public class MainMenuUIScript : MonoBehaviour
         _squadManagePanel = new GameObject("SquadManagePanel", typeof(RectTransform), typeof(Image));
         _squadManagePanel.transform.SetParent(_userInterface.transform, false);
         var panelRect = (RectTransform)_squadManagePanel.transform;
-        panelRect.anchorMin = new Vector2(0.5f, 0f);
-        panelRect.anchorMax = new Vector2(0.5f, 0f);
+        panelRect.anchorMin = new Vector2(0f, 0f);
+        panelRect.anchorMax = new Vector2(1f, 0f);
         panelRect.pivot = new Vector2(0.5f, 1f);
-        panelRect.anchoredPosition = new Vector2(0, -40);
-        panelRect.sizeDelta = new Vector2(360, 245);
-        _squadManagePanel.GetComponent<Image>().color = new Color(0.08f, 0.09f, 0.09f, 0.98f);
+        panelRect.anchoredPosition = new Vector2(0, -50);
+        panelRect.sizeDelta = new Vector2(0, 245);
+        // Same dark panel surface and subtle border as the online-player list.
+        _squadManagePanel.GetComponent<Image>().color = new Color(0.065f, 0.075f, 0.078f, 0.99f);
+        var manageOutline = _squadManagePanel.AddComponent<Outline>();
+        manageOutline.effectColor = new Color(0.36f, 0.41f, 0.42f, 1f);
+        manageOutline.effectDistance = new Vector2(1f, -1f);
         var labelGo = new GameObject("SquadDetails", typeof(RectTransform), typeof(TextMeshProUGUI));
         labelGo.transform.SetParent(_squadManagePanel.transform, false);
         var labelRect = (RectTransform)labelGo.transform;
