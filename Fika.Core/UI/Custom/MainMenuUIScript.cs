@@ -208,45 +208,25 @@ public class MainMenuUIScript : MonoBehaviour
         rect.pivot = new Vector2(0.5f, 1f);
         rect.anchoredPosition = new Vector2(0f, -6f);
         rect.sizeDelta = new Vector2(-4f, 44f);
-        // Outside to inside: 1px fade to transparent, 1px solid edge,
-        // then a 0.8px inner border. The panel surface remains dark.
-        root.GetComponent<Image>().color = new Color32(0x58, 0x5E, 0x61, 0x00);
-
-        var fade = new GameObject("SquadFooterOuterFade", typeof(RectTransform), typeof(Image));
-        fade.transform.SetParent(root.transform, false);
-        var fadeRect = (RectTransform)fade.transform;
-        fadeRect.anchorMin = Vector2.zero;
-        fadeRect.anchorMax = Vector2.one;
-        fadeRect.offsetMin = new Vector2(1f, 1f);
-        fadeRect.offsetMax = new Vector2(-1f, -1f);
-        fade.GetComponent<Image>().color = new Color32(0x58, 0x5E, 0x61, 0x66);
-
-        var solid = new GameObject("SquadFooterOuterSolid", typeof(RectTransform), typeof(Image));
-        solid.transform.SetParent(fade.transform, false);
-        var solidRect = (RectTransform)solid.transform;
-        solidRect.anchorMin = Vector2.zero;
-        solidRect.anchorMax = Vector2.one;
-        solidRect.offsetMin = new Vector2(1f, 1f);
-        solidRect.offsetMax = new Vector2(-1f, -1f);
-        solid.GetComponent<Image>().color = new Color32(0x58, 0x5E, 0x61, 0xFF);
-
-        var frame = new GameObject("SquadFooterFrame", typeof(RectTransform), typeof(Image));
-        frame.transform.SetParent(solid.transform, false);
-        var frameRect = (RectTransform)frame.transform;
-        frameRect.anchorMin = Vector2.zero;
-        frameRect.anchorMax = Vector2.one;
-        frameRect.offsetMin = new Vector2(0.8f, 0.8f);
-        frameRect.offsetMax = new Vector2(-0.8f, -0.8f);
-        frame.GetComponent<Image>().color = new Color32(0x58, 0x5E, 0x61, 0xFF);
+        // Match the Online Players panel: a dark surface with one subtle 1px
+        // outline. Do not stack multiple opaque Images: their edges compound
+        // and make this footer look much brighter/thicker than the player list.
+        root.GetComponent<Image>().color = new Color32(0x12, 0x13, 0x14, 0xFF);
 
         var background = new GameObject("SquadFooterBackground", typeof(RectTransform), typeof(Image));
-        background.transform.SetParent(frame.transform, false);
+        background.transform.SetParent(root.transform, false);
         var backgroundRect = (RectTransform)background.transform;
         backgroundRect.anchorMin = Vector2.zero;
         backgroundRect.anchorMax = Vector2.one;
-        backgroundRect.offsetMin = new Vector2(0.8f, 0.8f);
-        backgroundRect.offsetMax = new Vector2(-0.8f, -0.8f);
+        backgroundRect.offsetMin = new Vector2(1f, 1f);
+        backgroundRect.offsetMax = new Vector2(-1f, -1f);
         background.GetComponent<Image>().color = new Color32(0x12, 0x13, 0x14, 0xFF);
+
+        // Single fine frame, with a faint second edge for the panel's soft falloff.
+        var border = background.AddComponent<Outline>();
+        border.effectColor = new Color32(0x58, 0x5E, 0x61, 0xB0);
+        border.effectDistance = new Vector2(1f, -1f);
+        border.useGraphicAlpha = false;
         var layout = background.AddComponent<HorizontalLayoutGroup>();
         layout.padding = new RectOffset(7, 7, 5, 5);
         layout.spacing = 8;
