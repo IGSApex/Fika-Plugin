@@ -206,7 +206,7 @@ public class MainMenuUIScript : MonoBehaviour
         rect.anchorMin = new Vector2(0f, 0f);
         rect.anchorMax = new Vector2(1f, 0f);
         rect.pivot = new Vector2(0.5f, 1f);
-        rect.anchoredPosition = new Vector2(0f, -6f);
+        rect.anchoredPosition = new Vector2(0f, -3f);
         rect.sizeDelta = new Vector2(-4f, 44f);
         // Match the Online Players panel: a dark surface with one subtle 1px
         // outline. Do not stack multiple opaque Images: their edges compound
@@ -264,12 +264,12 @@ public class MainMenuUIScript : MonoBehaviour
         panelRect.anchorMin = new Vector2(0f, 0f);
         panelRect.anchorMax = new Vector2(1f, 0f);
         panelRect.pivot = new Vector2(0.5f, 1f);
-        panelRect.anchoredPosition = new Vector2(0, -48);
-        panelRect.sizeDelta = new Vector2(-10, 245);
+        panelRect.anchoredPosition = new Vector2(0, -53);
+        panelRect.sizeDelta = new Vector2(-4, 245);
         // Same dark panel surface and subtle border as the online-player list.
-        _squadManagePanel.GetComponent<Image>().color = new Color(0.065f, 0.075f, 0.078f, 0.99f);
+        _squadManagePanel.GetComponent<Image>().color = new Color32(0x12, 0x13, 0x14, 0xFF);
         var manageOutline = _squadManagePanel.AddComponent<Outline>();
-        manageOutline.effectColor = new Color(0.36f, 0.41f, 0.42f, 1f);
+        manageOutline.effectColor = new Color32(0x58, 0x5E, 0x61, 0xB0);
         manageOutline.effectDistance = new Vector2(1f, -1f);
         // Header bar mirrors the Online Players title bar.
         var header = new GameObject("SquadMembersHeader", typeof(RectTransform), typeof(Image));
@@ -280,7 +280,7 @@ public class MainMenuUIScript : MonoBehaviour
         headerRect.pivot = new Vector2(0.5f, 1);
         headerRect.anchoredPosition = Vector2.zero;
         headerRect.sizeDelta = new Vector2(0, 36);
-        header.GetComponent<Image>().color = new Color(0.14f, 0.17f, 0.18f, 0.99f);
+        header.GetComponent<Image>().color = new Color32(0x27, 0x2B, 0x2D, 0xFF);
         var labelGo = new GameObject("MembersLabel", typeof(RectTransform), typeof(TextMeshProUGUI));
         labelGo.transform.SetParent(header.transform, false);
         var labelRect = (RectTransform)labelGo.transform;
@@ -291,7 +291,7 @@ public class MainMenuUIScript : MonoBehaviour
         _squadManageLabel = labelGo.GetComponent<TextMeshProUGUI>();
         _squadManageLabel.fontSize = 17;
         _squadManageLabel.alignment = TextAlignmentOptions.MidlineLeft;
-        _squadManageLabel.color = Color.white;
+        _squadManageLabel.color = new Color32(0xEA, 0xEC, 0xDD, 0xFF);
 
         // Squad identifier is a small footer, similar to a version label.
         var footer = new GameObject("SquadIdFooter", typeof(RectTransform), typeof(Image));
@@ -302,7 +302,7 @@ public class MainMenuUIScript : MonoBehaviour
         footerRect.pivot = new Vector2(0.5f, 0);
         footerRect.anchoredPosition = Vector2.zero;
         footerRect.sizeDelta = new Vector2(0, 25);
-        footer.GetComponent<Image>().color = new Color(0.12f, 0.14f, 0.15f, 0.99f);
+        footer.GetComponent<Image>().color = new Color32(0x27, 0x2B, 0x2D, 0xFF);
         var idGo = new GameObject("SquadIdLabel", typeof(RectTransform), typeof(TextMeshProUGUI));
         idGo.transform.SetParent(footer.transform, false);
         var idRect = (RectTransform)idGo.transform;
@@ -411,7 +411,7 @@ public class MainMenuUIScript : MonoBehaviour
             rowRect.pivot = new Vector2(0.5f, 1);
             rowRect.anchoredPosition = new Vector2(0, -i * 33);
             rowRect.sizeDelta = new Vector2(0, 30);
-            row.GetComponent<Image>().color = new Color(0.13f, 0.15f, 0.15f, 0.95f);
+            row.GetComponent<Image>().color = new Color32(0x27, 0x2B, 0x2D, 0xFF);
             var labelGo = new GameObject("MemberName", typeof(RectTransform), typeof(TextMeshProUGUI));
             labelGo.transform.SetParent(row.transform, false);
             var labelRect = (RectTransform)labelGo.transform;
@@ -420,7 +420,7 @@ public class MainMenuUIScript : MonoBehaviour
             labelRect.offsetMin = new Vector2(8, 0);
             labelRect.offsetMax = new Vector2(-82, 0);
             var label = labelGo.GetComponent<TextMeshProUGUI>();
-            label.fontSize = 14;
+            label.fontSize = 14;\n            label.color = new Color32(0xEA, 0xEC, 0xDD, 0xFF);
             label.alignment = TextAlignmentOptions.MidlineLeft;
             label.overflowMode = TextOverflowModes.Ellipsis;
             var isSelf = memberId == FikaBackendUtils.Profile?.Id;
