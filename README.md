@@ -23,21 +23,6 @@ The squad footer is currently implemented by **cloning the refresh button's pare
 
 These changes preserve the community squad functionality. Keep the Fika client and server builds compatible.
 
-## Build
-
-Requirements: .NET 10 SDK, Windows 10/11, and a compatible SPT/EFT installation.
-
-Populate the project's `References/` folder with the required assemblies from `EscapeFromTarkov_Data/Managed/` and the appropriate SPT Modules `hollowed.dll`, following the existing project references. Then:
-
-```powershell
-git clone https://github.com/IGSApex/Fika-Plugin.git
-cd Fika-Plugin
-dotnet restore
-dotnet build -c Release
-```
-
-Deploy the built `Fika.Core.dll` and required assets into the matching client installation. Do not distribute reference assemblies copied from the game. A successful build does not guarantee correct Unity UI layout; test the menu and squad actions in-game.
-
 ## Related repositories
 
 - [IGSApex/Fika-Server-CSharp](https://github.com/IGSApex/Fika-Server-CSharp) — authoritative squad membership and invitations.
