@@ -1,32 +1,21 @@
 # Fika Client Plugin
 
-Community fork of [Project Fika's client plugin](https://github.com/project-fika/Fika-Plugin) for SPT 4.1.x, with custom multiplayer squad functionality and menu UI. The current `FikaPlugin.FikaVersion` constant is **2.4.6**.
+Fika multiplayer client with additional squad management features.
 
-## Community changes
+## Features
 
-### Online Players and squads
+- **Online Players:** View connected players and their current status in the main menu.
+- **Create Squad:** Start a squad from the Online Players panel.
+- **Invite Players:** Invite other players to join your squad.
+- **Manage Squad:** View members, see the squad leader, and manage membership.
+- **Leave Squad:** Leave your current squad.
+- **Squad Information:** View the member count (up to five players) and squad ID.
+- **Fika 2.4.6:** Includes the updated version identifier and corpse synchronization ID handling.
 
-The main-menu **Online Players** list shows connected players and presence. Squad controls allow **Create Squad / Leave Squad** and **Manage Squad**. Squad management displays the current roster, leader, membership count (up to five), and the squad identifier; the client also handles invitations and squad notifications.
+## How to Use
 
-Key implementation files:
+Open **Online Players** in the game menu. Select **Create Squad**, invite other players, and use **Manage Squad** to view or manage the roster. Use **Leave Squad** when you want to exit the group.
 
-- `Fika.Core/UI/Custom/MainMenuUIScript.cs` — online-player panel and squad controls.
-- `Fika.Core/Networking/Websocket/FikaSquadNotifications.cs` — squad state and incoming notifications.
-- `Fika.Core/UI/Custom/MainMenuUI.cs` — original UI component references.
+## Related Projects
 
-The squad footer is currently implemented by **cloning the refresh button's parent UI object** from the bundled Online Players prefab, removing cloned children and adding the squad buttons. This is intended to match the original header styling, but **pixel-perfect alignment has not been verified in-game**. Check the prefab hierarchy if the footer's texture or position differs. The squad roster has its own members header and small squad-ID footer.
-
-### Fika 2.4.6 update
-
-- `Fika.Core/FikaPlugin.cs`: `FikaVersion = "2.4.6"`.
-- `Fika.Core/Main/Players/FikaPlayer.cs`: corpse health synchronization validates killer and weapon profile IDs before converting them to nullable `MongoID` values.
-
-These changes preserve the community squad functionality. Keep the Fika client and server builds compatible.
-
-## Related repositories
-
-- [IGSApex/Fika-Server-CSharp](https://github.com/IGSApex/Fika-Server-CSharp) — authoritative squad membership and invitations.
-- [IGSApex/launcher](https://github.com/IGSApex/launcher) — launcher and mod synchronization.
-- [IGSApex/server-csharp](https://github.com/IGSApex/server-csharp) — SPT game server and launcher API.
-
-This fork builds on Project Fika. See `LICENSE.md`, `Licenses/` and upstream credits for licensing and attribution.
+[Fika Server](https://github.com/IGSApex/Fika-Server-CSharp) · [Launcher](https://github.com/IGSApex/launcher) · [SPT Server](https://github.com/IGSApex/server-csharp)
