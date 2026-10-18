@@ -203,11 +203,13 @@ public class MainMenuUIScript : MonoBehaviour
         var root = new GameObject("FikaSquadControls", typeof(RectTransform), typeof(Image), typeof(Outline));
         root.transform.SetParent(_userInterface.transform, false);
         var rect = (RectTransform)root.transform;
+        // Keep the footer INSIDE the panel border, flush with its bottom edge.
+        // This prevents the detached gap and the wider-than-panel outline.
         rect.anchorMin = new Vector2(0f, 0f);
         rect.anchorMax = new Vector2(1f, 0f);
-        rect.pivot = new Vector2(0.5f, 1f);
-        rect.anchoredPosition = Vector2.zero;
-        rect.sizeDelta = new Vector2(0f, 44f);
+        rect.pivot = new Vector2(0.5f, 0f);
+        rect.anchoredPosition = new Vector2(0f, 1f);
+        rect.sizeDelta = new Vector2(-2f, 44f);
         root.GetComponent<Image>().color = new Color32(0x12, 0x13, 0x14, 0xFF);
         var border = root.GetComponent<Outline>();
         border.effectColor = new Color32(0x58, 0x5E, 0x61, 0xFF);
