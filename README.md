@@ -1,74 +1,47 @@
-# Fika - Bepinex plugin
+# IGS Gaming Community — Fika Client Plugin
 
-[![Discord](https://img.shields.io/discord/1202292159366037545?style=plastic&logo=discord&logoColor=FFFFFF&label=Fika%20Discord)](https://discord.gg/project-fika)
-[![Downloads](https://img.shields.io/github/downloads/project-fika/Fika-Plugin/total?style=plastic&logo=github)](https://github.com/project-fika/Fika-Plugin/releases/latest)
-![Size](https://img.shields.io/github/languages/code-size/project-fika/Fika-Plugin?style=plastic&logo=github)
-![Issues](https://img.shields.io/github/issues/project-fika/Fika-Plugin?style=plastic&logo=github)
-[![License](https://img.shields.io/badge/CC--BY--NC--SA--4.0-blue?style=plastic&logo=creativecommons&logoColor=FFFFFF&label=License)](https://github.com/project-fika/Fika-Plugin/blob/main/LICENSE.md)
-[![Crowdin](https://badges.crowdin.net/project-fika/localized.svg)](https://crowdin.com/project/project-fika)
-[![.NET Test](https://github.com/project-fika/Fika-Plugin/actions/workflows/dotnet.yml/badge.svg)](https://github.com/project-fika/Fika-Plugin/actions/workflows/dotnet.yml)
+Community fork of [Project Fika's client plugin](https://github.com/project-fika/Fika-Plugin) for SPT 4.1.x, with custom multiplayer squad functionality and menu UI. The current `FikaPlugin.FikaVersion` constant is **2.4.6**.
 
-Client-side changes to make multiplayer work.
+## Community changes
 
-## State of the project
+### Online Players and squads
 
-Fully functional with minimal bugs.
+The main-menu **Online Players** list shows connected players and presence. Squad controls allow **Create Squad / Leave Squad** and **Manage Squad**. Squad management displays the current roster, leader, membership count (up to five), and the squad identifier; the client also handles invitations and squad notifications.
 
-- All base game features are replicating and working properly
-- Unique interpolation system inspired by the id Tech 3 networking model
-- Extremely efficient bandwidth usage
-- Headless client to off-load AI (see [Fika-Headless](https://github.com/project-fika/Fika-Headless) repo)
-- Base game bug fixes that have been unfixed for years
-- Base game performance fixes
-- DNS support
-- Works with all mods that are developed without hacky workarounds
+Key implementation files:
 
-## Supported OS
-Fika is meant to be ran on Windows 10/11. Any other OS might work, but is not officially supported nor do we develop for them. Please respect this when creating an issue/bug report.
+- `Fika.Core/UI/Custom/MainMenuUIScript.cs` — online-player panel and squad controls.
+- `Fika.Core/Networking/Websocket/FikaSquadNotifications.cs` — squad state and incoming notifications.
+- `Fika.Core/UI/Custom/MainMenuUI.cs` — original UI component references.
 
-## Contributing
+The squad footer is currently implemented by **cloning the refresh button's parent UI object** from the bundled Online Players prefab, removing cloned children and adding the squad buttons. This is intended to match the original header styling, but **pixel-perfect alignment has not been verified in-game**. Check the prefab hierarchy if the footer's texture or position differs. The squad roster has its own members header and small squad-ID footer.
 
-You are free to fork, improve and send PRs to improve the project. Please try
-to make your code coherent for the other developers.
-It is recommended to check in with our developers on Discord before spending time on a pull request, so that no time is wasted on unwanted features.
+### Fika 2.4.6 update
 
-## Requirements
+- `Fika.Core/FikaPlugin.cs`: `FikaVersion = "2.4.6"`.
+- `Fika.Core/Main/Players/FikaPlayer.cs`: corpse health synchronization validates killer and weapon profile IDs before converting them to nullable `MongoID` values.
 
-- [Visual Studio Code](https://code.visualstudio.com/)
-- [.NET SDK 10.0.x](https://dotnet.microsoft.com/en-us/download/dotnet/10.0)
-
-## Setup
-
-1. Copy-paste the contents of `EscapeFromTarkov_Data/Managed/` into
-    `References/`
-2. Copy-paste from SPT.Modules `project/Shared/Hollowed/hollowed.dll` into
-    `References/`
+These changes preserve the community squad functionality. Keep the Fika client and server builds compatible.
 
 ## Build
 
-### Debug / Release
+Requirements: .NET 10 SDK, Windows 10/11, and a compatible SPT/EFT installation.
 
-**Tool**   | **Action**
----------- | ------------------------------
-PowerShell | `dotnet build`
-VSCode     | `Terminal > Run Build Task...`
+Populate the project's `References/` folder with the required assemblies from `EscapeFromTarkov_Data/Managed/` and the appropriate SPT Modules `hollowed.dll`, following the existing project references. Then:
 
-You have to create a `References` folder and populate it with the required
-dependencies from your game installation for the project to build.
+```powershell
+git clone https://github.com/IGSApex/Fika-Plugin.git
+cd Fika-Plugin
+dotnet restore
+dotnet build -c Release
+```
 
-## Licenses
+Deploy the built `Fika.Core.dll` and required assets into the matching client installation. Do not distribute reference assemblies copied from the game. A successful build does not guarantee correct Unity UI layout; test the menu and squad actions in-game.
 
-[<img src="https://mirrors.creativecommons.org/presskit/buttons/88x31/svg/by-nc-sa.svg" alt="cc by-nc-sa" width="180" height="63" align="right">](https://creativecommons.org/licenses/by-nc-sa/4.0/legalcode.en)
+## Related repositories
 
-This project is licensed under [CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/legalcode.en).
+- [IGSApex/Fika-Server-CSharp](https://github.com/IGSApex/Fika-Server-CSharp) — authoritative squad membership and invitations.
+- [IGSApex/launcher](https://github.com/IGSApex/launcher) — launcher and mod synchronization.
+- [IGSApex/server-csharp](https://github.com/IGSApex/server-csharp) — SPT game server and launcher API.
 
-### Credits
-
-**Project** | **License**
------------ | -----------------------------------------------------------------------
-SPT.Modules | [NCSA](https://dev.sp-tarkov.com/SPT/Modules/src/branch/master/LICENSE.md)
-SIT         | [NCSA](./Licenses/LICENSE-SIT.md) (`Forked from SIT.Client master:9de30d8`)
-Open.NAT    | [MIT](https://github.com/lontivero/Open.NAT/blob/master/LICENSE) (for UPnP implementation)
-LiteNetLib  | [MIT](https://github.com/RevenantX/LiteNetLib/blob/master/LICENSE.txt) (for P2P UDP implementation)
-
-<a href="https://crowdin.com/?utm_term=click-badge-add-on" rel="nofollow"><img style="width:140;height:40px" src="https://badges.crowdin.net/badge/light/crowdin-on-dark.png" srcset="https://badges.crowdin.net/badge/light/crowdin-on-dark.png 1x,https://badges.crowdin.net/badge/light/crowdin-on-dark@2x.png 2x" alt="Crowdin | Agile localization for tech companies" /></a>
+This fork builds on Project Fika. See `LICENSE.md`, `Licenses/` and upstream credits for licensing and attribution.
