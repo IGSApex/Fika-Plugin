@@ -208,11 +208,10 @@ public class MainMenuUIScript : MonoBehaviour
         rect.pivot = new Vector2(0.5f, 1f);
         rect.anchoredPosition = new Vector2(0f, -6f);
         rect.sizeDelta = new Vector2(-4f, 44f);
-        // The original player panel has a thin inset frame with dark surface visible
-        // just outside the frame. Match that layering instead of a solid outer rim.
-        root.GetComponent<Image>().color = new Color32(0x12, 0x13, 0x14, 0xFF);
+        // Outside to inside: 1px fade to transparent, 1px solid edge,
+        // then a 0.8px inner border. The panel surface remains dark.
+        root.GetComponent<Image>().color = new Color32(0x58, 0x5E, 0x61, 0x00);
 
-        // Two-pixel outer treatment: one translucent fade pixel and one solid pixel.
         var fade = new GameObject("SquadFooterOuterFade", typeof(RectTransform), typeof(Image));
         fade.transform.SetParent(root.transform, false);
         var fadeRect = (RectTransform)fade.transform;
@@ -220,15 +219,24 @@ public class MainMenuUIScript : MonoBehaviour
         fadeRect.anchorMax = Vector2.one;
         fadeRect.offsetMin = new Vector2(1f, 1f);
         fadeRect.offsetMax = new Vector2(-1f, -1f);
-        fade.GetComponent<Image>().color = new Color32(0x58, 0x5E, 0x61, 0x70);
+        fade.GetComponent<Image>().color = new Color32(0x58, 0x5E, 0x61, 0x66);
+
+        var solid = new GameObject("SquadFooterOuterSolid", typeof(RectTransform), typeof(Image));
+        solid.transform.SetParent(fade.transform, false);
+        var solidRect = (RectTransform)solid.transform;
+        solidRect.anchorMin = Vector2.zero;
+        solidRect.anchorMax = Vector2.one;
+        solidRect.offsetMin = new Vector2(1f, 1f);
+        solidRect.offsetMax = new Vector2(-1f, -1f);
+        solid.GetComponent<Image>().color = new Color32(0x58, 0x5E, 0x61, 0xFF);
 
         var frame = new GameObject("SquadFooterFrame", typeof(RectTransform), typeof(Image));
-        frame.transform.SetParent(fade.transform, false);
+        frame.transform.SetParent(solid.transform, false);
         var frameRect = (RectTransform)frame.transform;
         frameRect.anchorMin = Vector2.zero;
         frameRect.anchorMax = Vector2.one;
-        frameRect.offsetMin = new Vector2(1f, 1f);
-        frameRect.offsetMax = new Vector2(-1f, -1f);
+        frameRect.offsetMin = new Vector2(0.8f, 0.8f);
+        frameRect.offsetMax = new Vector2(-0.8f, -0.8f);
         frame.GetComponent<Image>().color = new Color32(0x58, 0x5E, 0x61, 0xFF);
 
         var background = new GameObject("SquadFooterBackground", typeof(RectTransform), typeof(Image));
@@ -236,8 +244,8 @@ public class MainMenuUIScript : MonoBehaviour
         var backgroundRect = (RectTransform)background.transform;
         backgroundRect.anchorMin = Vector2.zero;
         backgroundRect.anchorMax = Vector2.one;
-        backgroundRect.offsetMin = new Vector2(1f, 1f);
-        backgroundRect.offsetMax = new Vector2(-1f, -1f);
+        backgroundRect.offsetMin = new Vector2(0.8f, 0.8f);
+        backgroundRect.offsetMax = new Vector2(-0.8f, -0.8f);
         background.GetComponent<Image>().color = new Color32(0x12, 0x13, 0x14, 0xFF);
         var layout = background.AddComponent<HorizontalLayoutGroup>();
         layout.padding = new RectOffset(7, 7, 5, 5);
