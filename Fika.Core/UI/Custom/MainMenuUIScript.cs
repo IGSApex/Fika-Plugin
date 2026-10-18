@@ -208,16 +208,26 @@ public class MainMenuUIScript : MonoBehaviour
         rect.pivot = new Vector2(0.5f, 1f);
         rect.anchoredPosition = new Vector2(0f, -6f);
         rect.sizeDelta = new Vector2(-4f, 44f);
-        root.GetComponent<Image>().color = new Color32(0x58, 0x5E, 0x61, 0xFF);
+        // The original player panel has a thin inset frame with dark surface visible
+        // just outside the frame. Match that layering instead of a solid outer rim.
+        root.GetComponent<Image>().color = new Color32(0x12, 0x13, 0x14, 0xFF);
 
-        // A solid two-pixel border keeps the dark fill entirely inside.
+        var frame = new GameObject("SquadFooterFrame", typeof(RectTransform), typeof(Image));
+        frame.transform.SetParent(root.transform, false);
+        var frameRect = (RectTransform)frame.transform;
+        frameRect.anchorMin = Vector2.zero;
+        frameRect.anchorMax = Vector2.one;
+        frameRect.offsetMin = new Vector2(2f, 2f);
+        frameRect.offsetMax = new Vector2(-2f, -2f);
+        frame.GetComponent<Image>().color = new Color32(0x58, 0x5E, 0x61, 0xFF);
+
         var background = new GameObject("SquadFooterBackground", typeof(RectTransform), typeof(Image));
-        background.transform.SetParent(root.transform, false);
+        background.transform.SetParent(frame.transform, false);
         var backgroundRect = (RectTransform)background.transform;
         backgroundRect.anchorMin = Vector2.zero;
         backgroundRect.anchorMax = Vector2.one;
-        backgroundRect.offsetMin = new Vector2(2f, 2f);
-        backgroundRect.offsetMax = new Vector2(-2f, -2f);
+        backgroundRect.offsetMin = new Vector2(1f, 1f);
+        backgroundRect.offsetMax = new Vector2(-1f, -1f);
         background.GetComponent<Image>().color = new Color32(0x12, 0x13, 0x14, 0xFF);
         var layout = background.AddComponent<HorizontalLayoutGroup>();
         layout.padding = new RectOffset(7, 7, 5, 5);
@@ -227,7 +237,8 @@ public class MainMenuUIScript : MonoBehaviour
         layout.childControlHeight = true;
         layout.childForceExpandWidth = true;
         layout.childForceExpandHeight = true;
-                _squadActionButton = MakeSquadButton("Create Squad", background.transform, async () =>
+
+        _squadActionButton = MakeSquadButton("Create Squad", background.transform, async () =>
         {
             _squadActionButton.interactable = false;
             try
