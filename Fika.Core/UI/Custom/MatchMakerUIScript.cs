@@ -33,6 +33,9 @@ public class MatchMakerUIScript : MonoBehaviour
     private float _lastRefreshed;
     private bool _started;
     private Coroutine _serverQueryRoutine;
+    private int _dedicatedActive;
+    private int _dedicatedMaximum;
+    private bool _dedicatedCapacityKnown;
     private float _dotTimer;
     private int _dotCount;
     private GameObject _mmGameObject;
@@ -212,14 +215,26 @@ public class MatchMakerUIScript : MonoBehaviour
         _fikaMatchMakerUi.RaidGroupHostButton.onClick.AddListener(() =>
         {
             Singleton<GUISounds>.Instance.PlayUISound(EUISoundType.ButtonClick);
-            if (!_fikaMatchMakerUi.DediSelection.activeSelf)
+            RefreshDedicatedCapacity();
+            if (!_dedicatedCapacityKnown)
             {
+                Singleton<PreloaderUI>.Instance.ShowCriticalErrorScreen(
+                    "DEDICATED RAID", "Unable to check dedicated server capacity.",
+                    ErrorScreen.EButtonType.OkButton, 10f);
+                return;
+            }
+            if (_dedicatedActive >= _dedicatedMaximum)
+            {
+                _fikaMatchMakerUi.SelectAmountText.SetText("Join Singleplayer Raid?");
+                _fikaMatchMakerUi.UseDedicatedHostText.gameObject.SetActive(false);
+                _fikaMatchMakerUi.DedicatedToggle.gameObject.SetActive(false);
+                _fikaMatchMakerUi.HeadlessSelection.gameObject.SetActive(false);
                 _fikaMatchMakerUi.DediSelection.SetActive(true);
+                return;
             }
-            else
-            {
-                _fikaMatchMakerUi.DediSelection.SetActive(false);
-            }
+            Singleton<PreloaderUI>.Instance.ShowCriticalErrorScreen(
+                "DEDICATED RAID", "Dedicated raid simulation is not available yet.",
+                ErrorScreen.EButtonType.OkButton, 10f);
         });
 
         _fikaMatchMakerUi.CloseButton.onClick.AddListener(() =>
@@ -384,9 +399,28 @@ public class MatchMakerUIScript : MonoBehaviour
         _serverQueryRoutine = StartCoroutine(ServerQuery());
     }
 
+    private void RefreshDedicatedCapacity()
+    {
+        try
+        {
+            var capacity = FikaRequestHandler.GetDedicatedCapacity();
+            _dedicatedActive = capacity.Active;
+            _dedicatedMaximum = capacity.Maximum;
+            _dedicatedCapacityKnown = true;
+            _fikaMatchMakerUi.RaidsText.SetText($"RAIDS {_dedicatedActive}/{_dedicatedMaximum}");
+        }
+        catch (Exception ex)
+        {
+            _dedicatedCapacityKnown = false;
+            _fikaMatchMakerUi.RaidsText.SetText("RAIDS -/-");
+            FikaGlobals.LogWarning($"Dedicated raid capacity unavailable: {ex.Message}");
+        }
+    }
+
     private void AutoRefresh()
     {
         _matches = FikaRequestHandler.LocationRaids(RaidSettings);
+        RefreshDedicatedCapacity();
 
         _lastRefreshed = Time.time;
 
@@ -397,6 +431,7 @@ public class MatchMakerUIScript : MonoBehaviour
     {
         Singleton<GUISounds>.Instance.PlayUISound(EUISoundType.ButtonClick);
         _matches = FikaRequestHandler.LocationRaids(RaidSettings);
+        RefreshDedicatedCapacity();
 
         _lastRefreshed = Time.time;
 
