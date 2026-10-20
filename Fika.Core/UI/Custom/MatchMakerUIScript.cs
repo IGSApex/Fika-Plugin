@@ -36,6 +36,7 @@ public class MatchMakerUIScript : MonoBehaviour
     private int _dedicatedActive;
     private int _dedicatedMaximum;
     private bool _dedicatedCapacityKnown;
+    private bool _dedicatedCanStart;
     private float _dotTimer;
     private int _dotCount;
     private GameObject _mmGameObject;
@@ -223,7 +224,7 @@ public class MatchMakerUIScript : MonoBehaviour
                     ErrorScreen.EButtonType.OkButton, 10f);
                 return;
             }
-            if (_dedicatedActive >= _dedicatedMaximum)
+            if (!_dedicatedCanStart)
             {
                 _fikaMatchMakerUi.SelectAmountText.SetText("Join Singleplayer Raid?");
                 _fikaMatchMakerUi.UseDedicatedHostText.gameObject.SetActive(false);
@@ -232,9 +233,17 @@ public class MatchMakerUIScript : MonoBehaviour
                 _fikaMatchMakerUi.DediSelection.SetActive(true);
                 return;
             }
-            Singleton<PreloaderUI>.Instance.ShowCriticalErrorScreen(
-                "DEDICATED RAID", "Dedicated raid simulation is not available yet.",
-                ErrorScreen.EButtonType.OkButton, 10f);
+            // Reuse Fika's existing playable headless-host workflow, not the
+            // prototype worker (which cannot run EFT/Unity).
+            availableHeadlesses = FikaRequestHandler.GetAvailableHeadlesses();
+            if (availableHeadlesses.Length == 0)
+            {
+                RefreshDedicatedCapacity();
+                return;
+            }
+            _fikaMatchMakerUi.DedicatedToggle.isOn = true;
+            _fikaMatchMakerUi.DediSelection.SetActive(false);
+            _fikaMatchMakerUi.StartButton.onClick.Invoke();
         });
 
         _fikaMatchMakerUi.CloseButton.onClick.AddListener(() =>
@@ -250,7 +259,7 @@ public class MatchMakerUIScript : MonoBehaviour
 
         _fikaMatchMakerUi.StartButton.onClick.AddListener(async () =>
         {
-            if (_dedicatedCapacityKnown && _dedicatedActive >= _dedicatedMaximum)
+            if (_dedicatedCapacityKnown && !_dedicatedCanStart)
             {
                 Singleton<PreloaderUI>.Instance.ShowCriticalErrorScreen(
                     "SINGLEPLAYER RAID", "Solo launch is not connected yet.",
@@ -413,12 +422,14 @@ public class MatchMakerUIScript : MonoBehaviour
             var capacity = FikaRequestHandler.GetDedicatedCapacity();
             _dedicatedActive = capacity.Active;
             _dedicatedMaximum = capacity.Maximum;
+            _dedicatedCanStart = capacity.CanStart;
             _dedicatedCapacityKnown = true;
             _fikaMatchMakerUi.RaidsText.SetText($"RAIDS {_dedicatedActive}/{_dedicatedMaximum}");
         }
         catch (Exception ex)
         {
             _dedicatedCapacityKnown = false;
+            _dedicatedCanStart = false;
             _fikaMatchMakerUi.RaidsText.SetText("RAIDS -/-");
             FikaGlobals.LogWarning($"Dedicated raid capacity unavailable: {ex.Message}");
         }
