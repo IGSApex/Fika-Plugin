@@ -27,6 +27,15 @@ public static class FikaRequestHandler
         _httpClient = RequestHandler.HttpClient;
     }
 
+    public sealed class DedicatedCapacityResponse
+    {
+        [JsonProperty("active")] public int Active { get; set; }
+        [JsonProperty("maximum")] public int Maximum { get; set; }
+    }
+
+    public static DedicatedCapacityResponse GetDedicatedCapacity() =>
+        GetJson<DedicatedCapacityResponse>("/fika/api/dedicated-capacity");
+
     public static async Task<IPAddress> GetPublicIP()
     {
         var client = _httpClient.HttpClient;
