@@ -34,7 +34,7 @@ public class MatchMakerUI : MonoBehaviour
     {
         RaidsText.SetText(LocaleUtils.UI_MM_RAIDSHEADER.Localized());
         JoinText.SetText(LocaleUtils.UI_MM_JOIN_BUTTON.Localized());
-        HostRaidText.SetText(LocaleUtils.UI_MM_HOST_BUTTON.Localized());
+        HostRaidText.SetText("START RAID");
         SelectAmountText.SetText(LocaleUtils.UI_MM_SESSION_SETTINGS_HEADER.Localized());
         UseDedicatedHostText.SetText(LocaleUtils.UI_MM_USE_DEDICATED_HOST.Localized());
         StartText.SetText(LocaleUtils.UI_MM_START_BUTTON.Localized());
