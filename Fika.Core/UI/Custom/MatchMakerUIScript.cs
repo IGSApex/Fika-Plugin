@@ -250,6 +250,13 @@ public class MatchMakerUIScript : MonoBehaviour
 
         _fikaMatchMakerUi.StartButton.onClick.AddListener(async () =>
         {
+            if (_dedicatedCapacityKnown && _dedicatedActive >= _dedicatedMaximum)
+            {
+                Singleton<PreloaderUI>.Instance.ShowCriticalErrorScreen(
+                    "SINGLEPLAYER RAID", "Solo launch is not connected yet.",
+                    ErrorScreen.EButtonType.OkButton, 10f);
+                return;
+            }
             ToggleLoading(true);
 
             var tarkovApplication = (TarkovApplication)Singleton<ClientApplication<IEftSession>>.Instance;
