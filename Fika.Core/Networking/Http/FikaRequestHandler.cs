@@ -31,6 +31,8 @@ public static class FikaRequestHandler
     {
         [JsonProperty("active")] public int Active { get; set; }
         [JsonProperty("maximum")] public int Maximum { get; set; }
+        [JsonProperty("ready")] public int Ready { get; set; }
+        [JsonProperty("canStart")] public bool CanStart { get; set; }
     }
 
     public static DedicatedCapacityResponse GetDedicatedCapacity() =>
