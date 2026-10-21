@@ -19,6 +19,10 @@ public static class RequestSubPackets
         public string Infiltration;
         public Vector3 Position;
         public Quaternion Rotation;
+        // Request identity is used only as a grouping hint until server-side
+        // session-to-peer identity verification is integrated.
+        public string ProfileId = string.Empty;
+        public string SquadId = string.Empty;
 
         public SpawnPointRequest(string name, Vector3 position, Quaternion rotation)
         {
@@ -27,65 +31,55 @@ public static class RequestSubPackets
             Rotation = rotation;
         }
 
-        public SpawnPointRequest()
-        {
-
-        }
+        public SpawnPointRequest() { }
 
         public SpawnPointRequest(NetDataReader reader)
         {
             Infiltration = reader.GetString();
             Position = reader.GetUnmanaged<Vector3>();
             Rotation = reader.GetUnmanaged<Quaternion>();
+            ProfileId = reader.GetString();
+            SquadId = reader.GetString();
         }
 
         public void HandleRequest(NetPeer peer, FikaServer server)
         {
             var fikaGame = Singleton<IFikaGame>.Instance;
-            if (fikaGame != null)
+            if (fikaGame?.GameController is HostGameController host && FikaBackendUtils.IsServer)
             {
-                if (FikaBackendUtils.IsServer && !string.IsNullOrEmpty(fikaGame.GameController.InfiltrationPoint) && fikaGame.GameController.SpawnPoint != null)
+                var allocation = host.AllocateSquadSpawn(ProfileId, SquadId);
+                if (allocation != null)
                 {
                     RequestPacket response = new()
                     {
                         Type = ERequestSubPacketType.SpawnPoint,
-                        RequestSubPacket = new SpawnPointRequest(fikaGame.GameController.InfiltrationPoint,
-                        fikaGame.GameController.SpawnPoint.Position, fikaGame.GameController.SpawnPoint.Rotation)
+                        RequestSubPacket = new SpawnPointRequest(allocation.Infiltration,
+                            allocation.Position, allocation.Rotation)
                     };
-
                     server.SendDataToPeer(ref response, DeliveryMethod.ReliableOrdered, peer);
                     return;
                 }
             }
-
-            FikaGlobals.LogError("SpawnPointRequest::HandleRequest: CoopGame was null upon receiving packet!");
+            FikaGlobals.LogError("SpawnPointRequest::HandleRequest: Host spawn allocator unavailable");
         }
 
         public void HandleResponse()
         {
             var fikaGame = Singleton<IFikaGame>.Instance;
-            if (fikaGame != null)
-            {
-                if (!string.IsNullOrEmpty(Infiltration))
-                {
-                    fikaGame.GameController.InfiltrationPoint = Infiltration;
-                    fikaGame.GameController.ClientSpawnPosition = Position;
-                    fikaGame.GameController.ClientSpawnRotation = Rotation;
-                    FikaGlobals.LogInfo($"Received spawn position from host: {Position:F2}, rotation: {Rotation:F2}");
-                    return;
-                }
-                FikaGlobals.LogError("SpawnPointRequest::HandleResponse: Infiltration was empty!");
+            if (fikaGame == null || string.IsNullOrEmpty(Infiltration))
                 return;
-            }
-
-            FikaGlobals.LogError("SpawnPointRequest::HandleResponse: CoopGame was null upon receiving packet!");
+            fikaGame.GameController.InfiltrationPoint = Infiltration;
+            fikaGame.GameController.ClientSpawnPosition = Position;
+            fikaGame.GameController.ClientSpawnRotation = Rotation;
         }
 
         public void Serialize(NetDataWriter writer)
         {
-            writer.Put(Infiltration);
+            writer.Put(Infiltration ?? string.Empty);
             writer.PutUnmanaged(Position);
             writer.PutUnmanaged(Rotation);
+            writer.Put(ProfileId ?? string.Empty);
+            writer.Put(SquadId ?? string.Empty);
         }
     }
 
