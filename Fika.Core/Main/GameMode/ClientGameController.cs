@@ -178,47 +178,9 @@ public class ClientGameController(IFikaGame game, EUpdateQueue updateQueue, Game
     {
         // Resolve accepted squad membership before any spawn-selection branch.
         await Fika.Core.Networking.Websocket.FikaSquadNotifications.Refresh();
-        var spawnTogether = CheckSpawnTogether();
-        if (!spawnTogether)
-        {
-            Logger.LogInfo("Using random spawn points!");
-            NotificationManager.DisplayMessageNotification(LocaleUtils.RANDOM_SPAWNPOINTS.Localized(),
-                iconType: EFT.Communications.ENotificationIconType.Alert);
-
-            CreateSpawnSystem(profile);
-            return;
-        }
-
-        _abstractGame.SetMatchmakerStatus(LocaleUtils.UI_RETRIEVE_SPAWN_INFO.Localized());
-
-        RequestPacket packet = new()
-        {
-            Type = ERequestSubPacketType.SpawnPoint
-        };
-        var client = Singleton<FikaClient>.Instance;
-
-        do
-        {
-            client.SendData(ref packet, DeliveryMethod.ReliableOrdered);
-            await Task.Delay(1000);
-            if (string.IsNullOrEmpty(InfiltrationPoint))
-            {
-                await Task.Delay(2000);
-            }
-        } while (string.IsNullOrEmpty(InfiltrationPoint));
-
-        Logger.LogInfo($"Retrieved infiltration point '{InfiltrationPoint}' from server");
-    }
-
-    private bool CheckSpawnTogether()
-    {
-        if (string.Equals(RaidSettings.SelectedLocation.Id, "labyrinth", StringComparison.OrdinalIgnoreCase)
-            && FikaPlugin.Instance.Settings.RandomLabyrinthSpawns)
-        {
-            return false;
-        }
-
-        return RaidSettings.PlayersSpawnPlace == EPlayersSpawnPlace.SamePlace;
+        // Custom squad spawns override the legacy SamePlace/Random setting.
+        // Each accepted squad uses its squad ID; unaffiliated players use their profile ID.
+        CreateSpawnSystem(profile);
     }
 
     public override void CreateSpawnSystem(Profile profile)
@@ -228,7 +190,7 @@ public class ClientGameController(IFikaGame game, EUpdateQueue updateQueue, Game
         var spawnSafeDistance = (Location.SpawnSafeDistanceMeters > 0) ? Location.SpawnSafeDistanceMeters : 100;
         SpawnSystemSettings settings = new(Location.MinDistToFreePoint, Location.MaxDistToFreePoint, Location.MaxBotPerZone, spawnSafeDistance, Location.NoGroupSpawn, Location.OneTimeSpawn);
         SpawnSystem = SpawnSystemFactory.CreateSpawnSystem(settings, FikaGlobals.GetApplicationTime, Singleton<GameWorld>.Instance, null, _spawnPoints);
-        // For random-spawn raids, accepted squad members must choose the same
+        // For all raids, accepted squad members must choose the same
         // spawn seed. Unaffiliated players continue using their unique profile ID.
         // Squad membership is refreshed from the authenticated server before
         // spawn selection; do not use the raid connection ID as a squad ID.
