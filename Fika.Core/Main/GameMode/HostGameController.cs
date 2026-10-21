@@ -558,6 +558,69 @@ public class HostGameController : BaseGameController, IBotGame
         _gameWorld.StartCoroutine(CreateStashes());
     }
 
+    private readonly Dictionary<string, SquadSpawnAllocation> _squadSpawns = new(StringComparer.Ordinal);
+    private readonly object _squadSpawnSync = new();
+
+    public sealed class SquadSpawnAllocation
+    {
+        public string Infiltration;
+        public Vector3 Position;
+        public Quaternion Rotation;
+    }
+
+    // The host is the only authority selecting actual spawn coordinates.
+    // If the map has insufficient separated points, choose the most distant
+    // candidate instead of silently returning the host's location.
+    public SquadSpawnAllocation AllocateSquadSpawn(string profileId, string squadId)
+    {
+        if (string.IsNullOrWhiteSpace(profileId) || SpawnSystem == null)
+            return null;
+
+        var group = string.IsNullOrWhiteSpace(squadId)
+            ? "solo:" + profileId : "squad:" + squadId;
+        lock (_squadSpawnSync)
+        {
+            if (_squadSpawns.TryGetValue(group, out var existing))
+                return existing;
+
+            SquadSpawnAllocation best = null;
+            float bestDistance = -1f;
+            const float minimumDistance = 100f;
+            for (var attempt = 0; attempt < 64; attempt++)
+            {
+                var seed = group + ":spawn:" + attempt;
+                var point = SpawnSystem.SelectSpawnPoint(ESpawnCategory.Player,
+                    _spawnSide, null, null, null, null, seed);
+                if (point == null)
+                    continue;
+                float closest = float.MaxValue;
+                foreach (var allocated in _squadSpawns.Values)
+                {
+                    var distance = Vector3.Distance(point.Position, allocated.Position);
+                    if (distance < closest)
+                        closest = distance;
+                }
+                if (closest > bestDistance)
+                {
+                    bestDistance = closest;
+                    best = new SquadSpawnAllocation
+                    {
+                        Infiltration = string.IsNullOrEmpty(point.Infiltration) ? "MissingInfiltration" : point.Infiltration,
+                        Position = point.Position,
+                        Rotation = point.Rotation
+                    };
+                }
+                if (closest >= minimumDistance)
+                    break;
+            }
+            if (best != null)
+                _squadSpawns[group] = best;
+            return best;
+        }
+    }
+
+    private EPlayerSide _spawnSide;
+
     public override void CreateSpawnSystem(Profile profile)
     {
         _spawnPoints = SpawnPointsCollection.CreateFromScene(new DateTime?(DateTimeExtensions.LocalDateTimeFromUnixTime(Location.UnixDateTime)),
@@ -572,7 +635,18 @@ public class HostGameController : BaseGameController, IBotGame
         Fika.Core.Networking.Websocket.FikaSquadNotifications.Refresh().GetAwaiter().GetResult();
         var squadId = Fika.Core.Networking.Websocket.FikaSquadNotifications.SquadId;
         var spawnSeed = string.IsNullOrEmpty(squadId) ? profile.Id : squadId;
+        _spawnSide = profile.Info.Side;
         _spawnPoint = SpawnSystem.SelectSpawnPoint(ESpawnCategory.Player, profile.Info.Side, null, null, null, null, spawnSeed);
+        lock (_squadSpawnSync)
+        {
+            _squadSpawns.Clear();
+            _squadSpawns[string.IsNullOrEmpty(squadId) ? "solo:" + profile.Id : "squad:" + squadId] = new SquadSpawnAllocation
+            {
+                Infiltration = string.IsNullOrEmpty(_spawnPoint.Infiltration) ? "MissingInfiltration" : _spawnPoint.Infiltration,
+                Position = _spawnPoint.Position,
+                Rotation = _spawnPoint.Rotation
+            };
+        }
         InfiltrationPoint = string.IsNullOrEmpty(_spawnPoint.Infiltration) ? "MissingInfiltration" : _spawnPoint.Infiltration;
     }
 
