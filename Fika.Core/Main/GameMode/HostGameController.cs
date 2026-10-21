@@ -567,6 +567,9 @@ public class HostGameController : BaseGameController, IBotGame
         SpawnSystem = SpawnSystemFactory.CreateSpawnSystem(settings, FikaGlobals.GetApplicationTime, Singleton<GameWorld>.Instance, _botsController, _spawnPoints);
         // Use the same server-confirmed squad seed as clients. This ensures
         // the host does not silently use a different seed from their squad.
+        // Host refreshes server-owned membership before choosing its spawn.
+        // CreateSpawnSystem is synchronous, so perform the HTTP refresh here.
+        Fika.Core.Networking.Websocket.FikaSquadNotifications.Refresh().GetAwaiter().GetResult();
         var squadId = Fika.Core.Networking.Websocket.FikaSquadNotifications.SquadId;
         var spawnSeed = string.IsNullOrEmpty(squadId) ? profile.Id : squadId;
         _spawnPoint = SpawnSystem.SelectSpawnPoint(ESpawnCategory.Player, profile.Info.Side, null, null, null, null, spawnSeed);
