@@ -176,11 +176,23 @@ public class ClientGameController(IFikaGame game, EUpdateQueue updateQueue, Game
 
     public override async Task ReceiveSpawnPoint(Profile profile)
     {
-        // Resolve accepted squad membership before any spawn-selection branch.
         await Fika.Core.Networking.Websocket.FikaSquadNotifications.Refresh();
-        // Custom squad spawns override the legacy SamePlace/Random setting.
-        // Each accepted squad uses its squad ID; unaffiliated players use their profile ID.
-        CreateSpawnSystem(profile);
+        _abstractGame.SetMatchmakerStatus(LocaleUtils.UI_RETRIEVE_SPAWN_INFO.Localized());
+        var client = Singleton<FikaClient>.Instance;
+        do
+        {
+            RequestPacket packet = new()
+            {
+                Type = ERequestSubPacketType.SpawnPoint,
+                RequestSubPacket = new RequestSubPackets.SpawnPointRequest
+                {
+                    ProfileId = profile.Id,
+                    SquadId = Fika.Core.Networking.Websocket.FikaSquadNotifications.SquadId
+                }
+            };
+            client.SendData(ref packet, DeliveryMethod.ReliableOrdered);
+            await Task.Delay(1000);
+        } while (string.IsNullOrEmpty(InfiltrationPoint));
     }
 
     public override void CreateSpawnSystem(Profile profile)
